@@ -1,0 +1,76 @@
+import { Flags, ux } from '@oclif/core'
+import { AuthToken, defaultBaseUrl } from 'afpnews-api'
+
+import { BaseCommand } from '../../base-command.js'
+
+/**
+ * Get number of hours and minutes from a number of milliseconds
+ * @param milliseconds - The number of milliseconds to convert
+ * @returns An object with the number of hours and minutes
+ */
+function timeConvert(milliseconds: number) {
+  const dateInMinutes = milliseconds / 1000 / 60
+  const hours = (dateInMinutes / 60)
+  const rhours = Math.floor(hours)
+  const minutes = (hours - rhours) * 60
+  const rminutes = Math.round(minutes)
+  return { hours: rhours, minutes: rminutes }
+}
+
+export default class Login extends BaseCommand {
+  static description = 'Get a token for the API'
+  public static enableJsonFlag = true
+
+  static examples = [
+    '<%= config.bin %> <%= command.id %>',
+    '<%= config.bin %> <%= command.id %> --info',
+    '<%= config.bin %> <%= command.id %> --json'
+  ]
+
+  static flags = {
+    apiKey: Flags.string({char: 'a', description: 'Your API Key', required: false}),
+    baseUrl: Flags.string({char: 'u', default: defaultBaseUrl, description: 'The API base url', required: false }),
+    info: Flags.boolean({char: 'i', default: false, description: 'Just check if you\'re authenticated', required: false })
+  }
+
+  public getClientId(): string {
+    if (!this.userConfig.token) throw new Error('No token found')
+    if (this.userConfig.token.authType === 'anonymous') return 'anonymous'
+    if (!this.userConfig.apiKey) throw new Error('No apiKey found')
+    return Buffer.from(this.userConfig.apiKey, 'base64').toString('utf8').split(':')[0]
+  }
+
+  public logAuthInfo(): void {
+    if (!this.userConfig.token) throw new Error('No token found')
+    const diffTime = timeConvert(this.userConfig.token.tokenExpires - Date.now())
+    this.log(`You're authenticated as ${this.getClientId()} for ${diffTime.hours} hours and ${diffTime.minutes} minutes.`)
+  }
+
+  async run(): Promise<AuthToken | undefined> {
+    const { flags } = await this.parse(Login)
+
+    if (flags.info) {
+      await this.authenticate()
+      this.logAuthInfo()
+      return this.apiCore.token
+    }
+
+    if (flags.apiKey) {
+      this.setApiKey(flags.apiKey)
+    }
+
+    if (flags.baseUrl) {
+      this.setBaseUrl(flags.baseUrl)
+    }
+
+    if (this.userConfig.apiKey) {
+      const username = await ux.prompt('Type your username')
+      const password = await ux.prompt('Type your password', {type: 'hide'})
+
+      await this.authenticate(username, password)
+    }
+
+    this.logAuthInfo()
+    return this.apiCore.token
+  }
+}

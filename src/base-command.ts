@@ -47,6 +47,10 @@ export abstract class BaseCommand extends Command {
   public initApiCore(): void {
     this.apiCore = new ApiCore({ apiKey: this.userConfig.apiKey, baseUrl: this.userConfig.baseUrl })
     this.apiCore.token = this.userConfig.token
+    this.apiCore.on('tokenChanged', token => {
+      this.userConfig.token = token
+      this.saveUserConfig()
+    })
   }
 
   public async loadUserConfig(): Promise<void> {

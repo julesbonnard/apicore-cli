@@ -50,7 +50,20 @@ export default class Login extends BaseCommand {
     const { flags } = await this.parse(Login)
 
     if (flags.info) {
-      await this.authenticate()
+      if (this.userConfig.token && this.userConfig.token.tokenExpires <= Date.now()) {
+        this.log('Your token is expired.')
+        const refresh = await ux.confirm('Do you want to refresh it?')
+        if (refresh) {
+          try {
+            await this.authenticate()
+          } catch {
+            this.error('Error refreshing token. Please login again', { exit: 1 })
+          }
+        } else {
+          this.error('You need to login again', { exit: 1 })
+        }
+      }
+      
       this.logAuthInfo()
       return this.apiCore.token
     }

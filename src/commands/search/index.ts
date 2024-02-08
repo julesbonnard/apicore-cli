@@ -11,12 +11,27 @@ const DocSchema = z.object({
   revision: z.number(),
   country: z.string(),
   product: z.string(),
+  created: z.coerce.date(),
   published: z.coerce.date(),
   lang: z.string(),
   headline: z.string().optional(),
-  slug: z.string().array(),
+  slug: z.string().array().optional(),
 })
 /* eslint-enable perfectionist/sort-objects */
+
+/**
+ * Function to fix double quotes escaping in CSV export
+ * Issue in OCLIF table module, see https://github.com/oclif/core/issues/944
+ * @param {string} value - The value to fix
+ * @returns string
+ */
+function fixCSVQuotesExport (value: string) {
+  let i = 0
+  return value.replaceAll('"', () => {
+    i++
+    return i > 1 ? '""' : '"'
+  })
+}
 
 export default class Search extends BaseCommand {
   static args = {
@@ -46,8 +61,6 @@ export default class Search extends BaseCommand {
   }
 
   async run(): Promise<void> {
-    await this.authenticate()
-
     const { args, flags } = await this.parse(Search)
 
     ux.action.start('Searching documents')
@@ -62,11 +75,15 @@ export default class Search extends BaseCommand {
       sortField: flags.sortField,
       sortOrder: flags.sortOrder as SearchQuerySortOrder
     }, flags.fields)) {
-      const doc = flags.extended ? DocSchema.passthrough().parse(document) : DocSchema.parse(document)
-      if (this.jsonEnabled()) {
-        console.log(JSON.stringify(doc))
-      } else {
-        docs.push(doc)
+      try {
+        const doc = flags.extended ? DocSchema.passthrough().parse(document) : DocSchema.parse(document)
+        if (this.jsonEnabled()) {
+          console.log(JSON.stringify(doc))
+        } else {
+          docs.push(doc)
+        }
+      } catch (error) {
+        this.log('Error parsing document', error, document)
       }
     }
 
@@ -74,23 +91,40 @@ export default class Search extends BaseCommand {
     ux.table(docs, {
       afpshortid: {},
       uno: {
+        header: 'uno',
         extended: true
       },
       revision: {
+        header: 'revision',
         extended: true
       },
       country: {
+        header: 'country',
         extended: true
       },
-      product: {},
+      product: {
+        header: 'product'
+      },
+      created: {
+        header: 'created',
+        extended: true,
+        get: row => row.created.toLocaleString()
+      },
       published: {
+        header: 'published',
         get: row => row.published.toLocaleString()
       },
-      lang: {},
-      headline: {},
+      lang: {
+        header: 'lang'
+      },
+      headline: {
+        header: 'headline',
+        get: row => flags.csv && row.headline ? fixCSVQuotesExport(row.headline) : row.headline // Fix double quotes escaping in CSV export
+      },
       slug: {
+        header: 'slug',
         extended: true,
-        get: row => row.slug.join(',')
+        get: row => row.slug?.join(',')
       }
     }, {
       printLine: this.log.bind(this),

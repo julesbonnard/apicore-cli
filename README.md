@@ -1,10 +1,7 @@
-oclif-hello-world
+apicore CLI
 =================
 
-oclif example Hello World CLI
-
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![CircleCI](https://circleci.com/gh/oclif/hello-world/tree/main.svg?style=shield)](https://circleci.com/gh/oclif/hello-world/tree/main)
 [![GitHub license](https://img.shields.io/github/license/oclif/hello-world)](https://github.com/oclif/hello-world/blob/main/LICENSE)
 
 <!-- toc -->
@@ -17,8 +14,6 @@ oclif example Hello World CLI
 $ npm install -g @julesbonnard/apicore-cli
 $ apicore COMMAND
 running command...
-$ apicore (--version)
-@julesbonnard/apicore-cli/0.0.0 darwin-arm64 node-v20.10.0
 $ apicore --help [COMMAND]
 USAGE
   $ apicore COMMAND

@@ -14,6 +14,8 @@ apicore CLI
 $ npm install -g @julesbonnard/apicore-cli
 $ apicore COMMAND
 running command...
+$ apicore (--version)
+@julesbonnard/apicore-cli/0.0.1 darwin-arm64 node-v20.10.0
 $ apicore --help [COMMAND]
 USAGE
   $ apicore COMMAND
@@ -73,7 +75,7 @@ EXAMPLES
   $ apicore login --json
 ```
 
-_See code: [src/commands/login/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.0.0/src/commands/login/index.ts)_
+_See code: [src/commands/login/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.0.1/src/commands/login/index.ts)_
 
 ## `apicore search [QUERY]`
 
@@ -119,5 +121,5 @@ EXAMPLES
   $ apicore search --json
 ```
 
-_See code: [src/commands/search/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.0.0/src/commands/search/index.ts)_
+_See code: [src/commands/search/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.0.1/src/commands/search/index.ts)_
 <!-- commandsstop -->

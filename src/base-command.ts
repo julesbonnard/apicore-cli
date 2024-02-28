@@ -1,4 +1,4 @@
-import { Command, ux } from '@oclif/core'
+import { Command, Flags, Interfaces, ux } from '@oclif/core'
 import { ApiCore, type AuthToken } from 'afpnews-api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -10,8 +10,19 @@ type UserConfig = {
   token?: AuthToken
 }
 
-export abstract class BaseCommand extends Command {
+export type Flags<T extends typeof Command> = Interfaces.InferredFlags<typeof BaseCommand['baseFlags'] & T['flags']>
+export type Args<T extends typeof Command> = Interfaces.InferredArgs<T['args']>
+
+export abstract class BaseCommand<T extends typeof Command> extends Command {
+  static baseFlags = {
+    profile: Flags.string({ description: 'Define a custom profile to save auth config' })
+  }
+
   protected apiCore: ApiCore = new ApiCore()
+  
+  protected args!: Args<T>
+  protected flags!: Flags<T>
+  
   protected userConfig: UserConfig = {
     apiKey: undefined,
     baseUrl: undefined,
@@ -41,6 +52,22 @@ export abstract class BaseCommand extends Command {
 
   public async init(): Promise<void> {
     await super.init()
+    const { args, flags } = await this.parse({
+      args: this.ctor.args,
+      baseFlags: (super.ctor as typeof BaseCommand).baseFlags,
+      enableJsonFlag: this.ctor.enableJsonFlag,
+      flags: this.ctor.flags,
+      strict: this.ctor.strict
+    })
+
+    this.flags = flags as Flags<T>
+    this.args = args as Args<T>
+
+    if (flags.profile) {
+      this.config.configDir = join(this.config.configDir, flags.profile)
+      console.log('Using profile', flags.profile)
+    }
+    
     await this.loadUserConfig()
   }
 

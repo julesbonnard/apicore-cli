@@ -8,7 +8,8 @@
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^4",
     "@types/fs-extra": "^11.0.4",
-    "afpnews-api": "^2.0.25",
+    "afpnews-api": "^2.0.26",
+    "chalk": "^5.3.0",
     "zod": "^3.22.4"
   },
   "description": "A modern CLI to get fresh news from apicore",
@@ -17,14 +18,14 @@
     "@oclif/test": "^3",
     "@types/chai": "^4",
     "@types/mocha": "^10",
-    "@types/node": "^18",
-    "chai": "^4",
+    "@types/node": "^20",
+    "chai": "^5",
     "eslint": "^8",
     "eslint-config-oclif": "^5",
     "eslint-config-oclif-typescript": "^3",
     "eslint-config-prettier": "^9.1.0",
     "mocha": "^10",
-    "oclif": "^4.4.2",
+    "oclif": "^4.4.19",
     "shx": "^0.3.4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
@@ -45,6 +46,7 @@
     "bin": "apicore",
     "dirname": "apicore",
     "commands": "./dist/commands",
+    "topicSeparator": " ",
     "plugins": [
       "@oclif/plugin-help"
     ]

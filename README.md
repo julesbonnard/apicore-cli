@@ -88,8 +88,8 @@ USAGE
     | --no-truncate]] [--output csv|json|yaml |  | ]
 
 FLAGS
-  -f, --fields=<value>...    [default: afpshortid,uno,revision,country,product,published,lang,headline,slug] Fields to
-                             return
+  -f, --fields=<value>...    [default: afpshortid,uno,revision,country,product,created,published,lang,headline,slug]
+                             Fields to return
   -l, --langs=<value>...     Langs separated by commas, like fr,es
   -p, --products=<value>...  Products separated by commas, like news,photo
   -x, --extended             show extra columns

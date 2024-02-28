@@ -33,9 +33,13 @@ function fixCSVQuotesExport (value: string) {
   })
 }
 
-export default class Search extends BaseCommand {
+export default class Search extends BaseCommand<typeof Search> {
   static args = {
-    query: Args.string()
+    query: Args.string({
+      description: 'Search query',
+      name: 'query',
+      required: false
+    })
   }
 
   static description = 'Search documents using the API'

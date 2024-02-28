@@ -24,6 +24,7 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`apicore get ID`](#apicore-get-id)
 * [`apicore help [COMMANDS]`](#apicore-help-commands)
 * [`apicore login`](#apicore-login)
 * [`apicore notifications services`](#apicore-notifications-services)
@@ -31,6 +32,29 @@ USAGE
 * [`apicore notifications subscriptions [SERVICENAME]`](#apicore-notifications-subscriptions-servicename)
 * [`apicore notifications subscriptions delete SERVICENAME SUBSCRIPTIONIDENTIFIER`](#apicore-notifications-subscriptions-delete-servicename-subscriptionidentifier)
 * [`apicore search [QUERY]`](#apicore-search-query)
+
+## `apicore get ID`
+
+Get document using the API
+
+```
+USAGE
+  $ apicore get ID [--json] [--profile <value>]
+
+ARGUMENTS
+  ID  UNO or shortId of the document to retrieve
+
+FLAGS
+  --profile=<value>  Define a custom profile to save auth config
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get document using the API
+```
+
+_See code: [src/commands/get/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.0/src/commands/get/index.ts)_
 
 ## `apicore help [COMMANDS]`
 
@@ -166,6 +190,9 @@ USAGE
   $ apicore search [QUERY] [--json] [--profile <value>] [-f <value>] [--from <value>] [-l <value>] [-p
     <value>] [--size <value>] [--sortField <value>] [--sortOrder asc|desc] [--table] [--to <value>] [--columns <value> |
     -x] [--no-header | [--csv | --no-truncate]] [--output csv|json|yaml |  | ]
+
+ARGUMENTS
+  QUERY  Search query
 
 FLAGS
   -f, --fields=<value>...    [default: afpshortid,uno,revision,country,product,created,published,lang,headline,slug]

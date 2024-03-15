@@ -6,14 +6,14 @@ import { BaseCommand } from '../../base-command.js'
 
 /* eslint-disable perfectionist/sort-objects */
 const DocSchema = z.object({
-  afpshortid: z.string(),
+  afpshortid: z.string().optional(),
   uno: z.string(),
-  revision: z.number(),
-  country: z.string(),
-  product: z.string(),
+  revision: z.number().optional(),
+  country: z.string().optional(),
+  product: z.string().optional(),
   created: z.coerce.date(),
   published: z.coerce.date(),
-  lang: z.string(),
+  lang: z.string().optional(),
   headline: z.string().optional(),
   slug: z.string().array().optional(),
 })

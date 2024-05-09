@@ -30,7 +30,9 @@ export default class Login extends BaseCommand<typeof Login> {
   static flags = {
     apiKey: Flags.string({char: 'a', description: 'Your API Key', required: false}),
     baseUrl: Flags.string({char: 'u', default: defaultBaseUrl, description: 'The API base url', required: false }),
-    info: Flags.boolean({char: 'i', default: false, description: 'Just check if you\'re authenticated', required: false })
+    info: Flags.boolean({char: 'i', default: false, description: 'Just check if you\'re authenticated', required: false }),
+    username: Flags.string({description: 'Your username (not recommended, prefer interactive prompt)', required: false}),
+    password: Flags.string({description: 'Your password (not recommended, prefer interactive prompt)', required: false})
   }
 
   public getClientId(): string {
@@ -82,8 +84,8 @@ export default class Login extends BaseCommand<typeof Login> {
     }
 
     if (this.userConfig.apiKey) {
-      const username = await ux.prompt('Type your username')
-      const password = await ux.prompt('Type your password', {type: 'hide'})
+      const username = flags.username || await ux.prompt('Type your username')
+      const password = flags.password || await ux.prompt('Type your password', {type: 'hide'})
 
       await this.authenticate(username, password)
     }

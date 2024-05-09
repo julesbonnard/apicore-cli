@@ -6,11 +6,11 @@
   "dependencies": {
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
-    "@oclif/plugin-plugins": "^4",
+    "@oclif/plugin-plugins": "^5",
     "@types/fs-extra": "^11.0.4",
     "afpnews-api": "^2.0.26",
     "chalk": "^5.3.0",
-    "zod": "^3.22.4"
+    "zod": "^3.23.8"
   },
   "description": "A modern CLI to get fresh news from apicore",
   "devDependencies": {
@@ -20,12 +20,12 @@
     "@types/mocha": "^10",
     "@types/node": "^20",
     "chai": "^5",
-    "eslint": "^8",
+    "eslint": "^9",
     "eslint-config-oclif": "^5",
     "eslint-config-oclif-typescript": "^3",
     "eslint-config-prettier": "^9.1.0",
     "mocha": "^10",
-    "oclif": "^4.5.4",
+    "oclif": "^4.10.6",
     "shx": "^0.3.4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

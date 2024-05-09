@@ -74,7 +74,7 @@ DESCRIPTION
   Display help for apicore.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.18/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.21/src/commands/help.ts)_
 
 ## `apicore login`
 
@@ -82,13 +82,16 @@ Get a token for the API
 
 ```
 USAGE
-  $ apicore login [--json] [--profile <value>] [-a <value>] [-u <value>] [-i]
+  $ apicore login [--json] [--profile <value>] [-a <value>] [-u <value>] [-i] [--username <value>]
+    [--password <value>]
 
 FLAGS
-  -a, --apiKey=<value>   Your API Key
-  -i, --info             Just check if you're authenticated
-  -u, --baseUrl=<value>  [default: https://afp-apicore-prod.afp.com] The API base url
-      --profile=<value>  Define a custom profile to save auth config
+  -a, --apiKey=<value>    Your API Key
+  -i, --info              Just check if you're authenticated
+  -u, --baseUrl=<value>   [default: https://afp-apicore-prod.afp.com] The API base url
+      --password=<value>  Your password (not recommended, prefer interactive prompt)
+      --profile=<value>   Define a custom profile to save auth config
+      --username=<value>  Your username (not recommended, prefer interactive prompt)
 
 GLOBAL FLAGS
   --json  Format output as json.

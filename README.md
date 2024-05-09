@@ -15,7 +15,7 @@ $ npm install -g @julesbonnard/apicore-cli
 $ apicore COMMAND
 running command...
 $ apicore (--version)
-@julesbonnard/apicore-cli/0.1.1 darwin-arm64 node-v20.10.0
+@julesbonnard/apicore-cli/0.2.0 darwin-arm64 node-v20.10.0
 $ apicore --help [COMMAND]
 USAGE
   $ apicore COMMAND
@@ -54,7 +54,7 @@ DESCRIPTION
   Get document using the API
 ```
 
-_See code: [src/commands/get/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/get/index.ts)_
+_See code: [src/commands/get/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/get/index.ts)_
 
 ## `apicore help [COMMAND]`
 
@@ -107,7 +107,7 @@ EXAMPLES
   $ apicore login --json
 ```
 
-_See code: [src/commands/login/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/login/index.ts)_
+_See code: [src/commands/login/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/login/index.ts)_
 
 ## `apicore notifications services`
 
@@ -124,7 +124,7 @@ DESCRIPTION
   List notifications services
 ```
 
-_See code: [src/commands/notifications/services/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/notifications/services/index.ts)_
+_See code: [src/commands/notifications/services/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/services/index.ts)_
 
 ## `apicore notifications services delete [SERVICENAME]`
 
@@ -141,7 +141,7 @@ DESCRIPTION
   Delete notifications service
 ```
 
-_See code: [src/commands/notifications/services/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/notifications/services/delete.ts)_
+_See code: [src/commands/notifications/services/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/services/delete.ts)_
 
 ## `apicore notifications subscriptions [SERVICENAME]`
 
@@ -161,7 +161,7 @@ DESCRIPTION
   List notifications subscriptions
 ```
 
-_See code: [src/commands/notifications/subscriptions/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/notifications/subscriptions/index.ts)_
+_See code: [src/commands/notifications/subscriptions/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/subscriptions/index.ts)_
 
 ## `apicore notifications subscriptions delete SERVICENAME SUBSCRIPTIONIDENTIFIER`
 
@@ -182,7 +182,7 @@ DESCRIPTION
   Delete notifications subscription
 ```
 
-_See code: [src/commands/notifications/subscriptions/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/notifications/subscriptions/delete.ts)_
+_See code: [src/commands/notifications/subscriptions/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/subscriptions/delete.ts)_
 
 ## `apicore search [QUERY]`
 
@@ -232,5 +232,5 @@ EXAMPLES
   $ apicore search --json
 ```
 
-_See code: [src/commands/search/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.1.1/src/commands/search/index.ts)_
+_See code: [src/commands/search/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/search/index.ts)_
 <!-- commandsstop -->

@@ -15,7 +15,7 @@ $ npm install -g @julesbonnard/apicore-cli
 $ apicore COMMAND
 running command...
 $ apicore (--version)
-@julesbonnard/apicore-cli/0.2.0 darwin-arm64 node-v20.10.0
+@julesbonnard/apicore-cli/0.3.0 darwin-arm64 node-v22.12.0
 $ apicore --help [COMMAND]
 USAGE
   $ apicore COMMAND
@@ -25,7 +25,6 @@ USAGE
 # Commands
 <!-- commands -->
 * [`apicore get ID`](#apicore-get-id)
-* [`apicore help [COMMAND]`](#apicore-help-command)
 * [`apicore login`](#apicore-login)
 * [`apicore notifications services`](#apicore-notifications-services)
 * [`apicore notifications services delete [SERVICENAME]`](#apicore-notifications-services-delete-servicename)
@@ -54,27 +53,7 @@ DESCRIPTION
   Get document using the API
 ```
 
-_See code: [src/commands/get/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/get/index.ts)_
-
-## `apicore help [COMMAND]`
-
-Display help for apicore.
-
-```
-USAGE
-  $ apicore help [COMMAND...] [-n]
-
-ARGUMENTS
-  COMMAND...  Command to show help for.
-
-FLAGS
-  -n, --nested-commands  Include all nested commands in the output.
-
-DESCRIPTION
-  Display help for apicore.
-```
-
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.21/src/commands/help.ts)_
+_See code: [src/commands/get/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/get/index.ts)_
 
 ## `apicore login`
 
@@ -107,7 +86,7 @@ EXAMPLES
   $ apicore login --json
 ```
 
-_See code: [src/commands/login/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/login/index.ts)_
+_See code: [src/commands/login/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/login/index.ts)_
 
 ## `apicore notifications services`
 
@@ -124,7 +103,7 @@ DESCRIPTION
   List notifications services
 ```
 
-_See code: [src/commands/notifications/services/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/services/index.ts)_
+_See code: [src/commands/notifications/services/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/notifications/services/index.ts)_
 
 ## `apicore notifications services delete [SERVICENAME]`
 
@@ -141,7 +120,7 @@ DESCRIPTION
   Delete notifications service
 ```
 
-_See code: [src/commands/notifications/services/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/services/delete.ts)_
+_See code: [src/commands/notifications/services/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/notifications/services/delete.ts)_
 
 ## `apicore notifications subscriptions [SERVICENAME]`
 
@@ -161,7 +140,7 @@ DESCRIPTION
   List notifications subscriptions
 ```
 
-_See code: [src/commands/notifications/subscriptions/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/subscriptions/index.ts)_
+_See code: [src/commands/notifications/subscriptions/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/notifications/subscriptions/index.ts)_
 
 ## `apicore notifications subscriptions delete SERVICENAME SUBSCRIPTIONIDENTIFIER`
 
@@ -182,7 +161,7 @@ DESCRIPTION
   Delete notifications subscription
 ```
 
-_See code: [src/commands/notifications/subscriptions/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/notifications/subscriptions/delete.ts)_
+_See code: [src/commands/notifications/subscriptions/delete.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/notifications/subscriptions/delete.ts)_
 
 ## `apicore search [QUERY]`
 
@@ -190,9 +169,9 @@ Search documents using the API
 
 ```
 USAGE
-  $ apicore search [QUERY] [--json] [--profile <value>] [-f <value>] [--from <value>] [-l <value>] [-p
-    <value>] [--size <value>] [--sortField <value>] [--sortOrder asc|desc] [--table] [--to <value>] [--columns <value> |
-    -x] [--no-header | [--csv | --no-truncate]] [--output csv|json|yaml |  | ]
+  $ apicore search [QUERY] [--json] [--profile <value>] [-f <value>...] [--from <value>] [-l <value>...] [-p
+    <value>...] [--size <value>] [--sortField <value>] [--sortOrder asc|desc] [--table] [--to <value>] [--columns
+    <value> | --extended] [--output csv|json |  | --csv]
 
 ARGUMENTS
   QUERY  Search query
@@ -202,14 +181,12 @@ FLAGS
                              Fields to return
   -l, --langs=<value>...     Langs separated by commas, like fr,es
   -p, --products=<value>...  Products separated by commas, like news,photo
-  -x, --extended             show extra columns
       --columns=<value>      only show provided columns (comma-separated)
-      --csv                  output is csv format [alias: --output=csv]
-      --from=<value>         [default: 2012-01-01] From date
-      --no-header            hide table header from output
-      --no-truncate          do not truncate output to fit screen
+  --csv
+  --extended
+      --from=<value>         [default: 1980-01-01] From date
       --output=<option>      output in a more machine friendly format
-                             <options: csv|json|yaml>
+                             <options: csv|json>
       --profile=<value>      Define a custom profile to save auth config
       --size=<value>         [default: 10] Max number of documents to return
       --sortField=<value>    [default: published] Sort field
@@ -232,5 +209,5 @@ EXAMPLES
   $ apicore search --json
 ```
 
-_See code: [src/commands/search/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.2.0/src/commands/search/index.ts)_
+_See code: [src/commands/search/index.ts](https://github.com/julesbonnard/apicore-cli/blob/v0.3.0/src/commands/search/index.ts)_
 <!-- commandsstop -->

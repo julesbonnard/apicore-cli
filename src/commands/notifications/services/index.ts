@@ -1,4 +1,4 @@
-import { ux } from '@oclif/core'
+import { table } from '../../../components/table.js'
 
 import { BaseCommand } from '../../../base-command.js'
 
@@ -9,7 +9,7 @@ export default class ListServices extends BaseCommand<typeof ListServices> {
     const services = await this.apiCore.notificationCenter.listServices()
 
     /* eslint-disable perfectionist/sort-objects */
-    ux.table(services, {
+    table(services, {
       serviceName: {
         header: 'Service Name'
       },

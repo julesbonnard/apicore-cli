@@ -1,4 +1,5 @@
-import { Args, ux } from '@oclif/core'
+import { Args } from '@oclif/core'
+import { table } from '../../../components/table.js'
 
 import { BaseCommand } from '../../../base-command.js'
 
@@ -21,7 +22,7 @@ export default class listSubscriptions extends BaseCommand<typeof listSubscripti
     subscriptions = await (args.serviceName ? this.apiCore.notificationCenter.subscriptionsInService(args.serviceName) : this.apiCore.notificationCenter.listSubscriptions());
 
     /* eslint-disable perfectionist/sort-objects */
-    ux.table(subscriptions, {
+    table(subscriptions, {
       name: {
         header: 'Subscription Name'
       },

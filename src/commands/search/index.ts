@@ -1,10 +1,11 @@
-import { Args, Flags, ux } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
+import ora from 'ora'
+import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 import { z } from 'zod'
 
 import { BaseCommand } from '../../base-command.js'
 
-/* eslint-disable perfectionist/sort-objects */
 const DocSchema = z.object({
   afpshortid: z.string().optional(),
   uno: z.string(),
@@ -17,7 +18,6 @@ const DocSchema = z.object({
   headline: z.string().optional(),
   slug: z.string().array().optional(),
 })
-/* eslint-enable perfectionist/sort-objects */
 
 /**
  * Function to fix double quotes escaping in CSV export
@@ -61,13 +61,16 @@ export default class Search extends BaseCommand<typeof Search> {
     sortOrder: Flags.string({default: defaultSearchParams.sortOrder, description: 'Sort order', options: ['asc', 'desc'], required: false}),
     table: Flags.boolean({default: false, description: 'Print the results as a table', required: false}),
     to: Flags.string({default: defaultSearchParams.dateTo, description: 'To date', required: false}),
-    ...ux.table.flags({except: ['sort', 'filter']})
+    extended: Flags.boolean({default: false, required: false}),
+    csv: Flags.boolean({default: false, required: false}),
+    ...table.flags({except: ['sort', 'filter']})
   }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(Search)
 
-    ux.action.start('Searching documents')
+    const spinner = ora('Searching documents').start()
+
     const docs = []
     for await (const document of this.apiCore.searchAll({
       dateFrom: flags.from,
@@ -91,8 +94,7 @@ export default class Search extends BaseCommand<typeof Search> {
       }
     }
 
-    /* eslint-disable perfectionist/sort-objects */
-    ux.table(docs, {
+    table(docs, {
       afpshortid: {},
       uno: {
         header: 'uno',
@@ -134,8 +136,7 @@ export default class Search extends BaseCommand<typeof Search> {
       printLine: this.log.bind(this),
       ...flags
     })
-    /* eslint-enable perfectionist/sort-objects */
 
-    ux.action.stop()
+    spinner.stop()
   }
 }

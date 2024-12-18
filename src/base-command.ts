@@ -1,4 +1,5 @@
-import { Command, Flags, Interfaces, ux } from '@oclif/core'
+import { Command, Flags, Interfaces } from '@oclif/core'
+import ora from 'ora';
 import { ApiCore, type AuthToken } from 'afpnews-api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -30,14 +31,14 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   }
 
   public async authenticate(username?: string, password?: string): Promise<void> {
-    ux.action.start('Authenticate')
+    const spinner = ora('Authenticate').start();
     await (username && password ? this.apiCore.authenticate({ password, username }) : this.apiCore.authenticate())
     if (this.apiCore.token?.accessToken !== this.userConfig.token?.accessToken) {
       this.userConfig.token = this.apiCore.token
       await this.saveUserConfig()
     }
 
-    ux.action.stop()
+    spinner.stop()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

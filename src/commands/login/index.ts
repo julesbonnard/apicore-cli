@@ -1,4 +1,5 @@
-import { Flags, ux } from '@oclif/core'
+import { Flags } from '@oclif/core'
+import { input, confirm, password } from '@inquirer/prompts'
 import { AuthToken, defaultBaseUrl } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
@@ -59,7 +60,7 @@ export default class Login extends BaseCommand<typeof Login> {
     if (flags.info) {
       if (this.userConfig.token && this.userConfig.token.tokenExpires <= Date.now()) {
         this.log('Your token is expired.')
-        const refresh = await ux.confirm('Do you want to refresh it?')
+        const refresh = await confirm({ message: 'Do you want to refresh it?' })
         if (refresh) {
           try {
             await this.authenticate()
@@ -84,10 +85,10 @@ export default class Login extends BaseCommand<typeof Login> {
     }
 
     if (this.userConfig.apiKey) {
-      const username = flags.username || await ux.prompt('Type your username')
-      const password = flags.password || await ux.prompt('Type your password', {type: 'hide'})
-
-      await this.authenticate(username, password)
+      await this.authenticate(
+        flags.username || await input({ message: 'Type your username' }),
+        flags.password || await password({ message: 'Type your password' })
+      )
     }
 
     this.logAuthInfo()

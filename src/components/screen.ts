@@ -1,4 +1,4 @@
-function termwidth(stream: any): number {
+function termwidth(stream: NodeJS.WriteStream): number {
   if (!stream.isTTY) {
     return 80
   }
@@ -15,7 +15,7 @@ function termwidth(stream: any): number {
   return width
 }
 
-const columns: number | null = (global as any).columns
+const columns: number | null = (global as Record<string, unknown>).columns as number | null
 
 export let stdtermwidth = columns || termwidth(process.stdout)
 export let errtermwidth = columns || termwidth(process.stderr)

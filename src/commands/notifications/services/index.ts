@@ -8,7 +8,6 @@ export default class ListServices extends BaseCommand<typeof ListServices> {
   async run(): Promise<void> {
     const services = await this.apiCore.notificationCenter.listServices()
 
-    /* eslint-disable perfectionist/sort-objects */
     table(services, {
       serviceName: {
         header: 'Service Name'
@@ -31,6 +30,5 @@ export default class ListServices extends BaseCommand<typeof ListServices> {
     }, {
       printLine: this.log.bind(this)
     })
-    /* eslint-enable perfectionist/sort-objects */
   }
 }

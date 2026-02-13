@@ -55,9 +55,7 @@ export default class Login extends BaseCommand<typeof Login> {
   }
 
   async run(): Promise<AuthToken | undefined> {
-    const { flags } = await this.parse(Login)
-
-    if (flags.info) {
+    if (this.flags.info) {
       if (this.userConfig.token && this.userConfig.token.tokenExpires <= Date.now()) {
         this.log('Your token is expired.')
         const refresh = await confirm({ message: 'Do you want to refresh it?' })
@@ -76,18 +74,18 @@ export default class Login extends BaseCommand<typeof Login> {
       return this.apiCore.token
     }
 
-    if (flags.apiKey) {
-      this.setApiKey(flags.apiKey)
+    if (this.flags.apiKey) {
+      this.setApiKey(this.flags.apiKey)
     }
 
-    if (flags.baseUrl) {
-      this.setBaseUrl(flags.baseUrl)
+    if (this.flags.baseUrl) {
+      this.setBaseUrl(this.flags.baseUrl)
     }
 
     if (this.userConfig.apiKey) {
       await this.authenticate(
-        flags.username || await input({ message: 'Type your username' }),
-        flags.password || await password({ message: 'Type your password' })
+        this.flags.username || await input({ message: 'Type your username' }),
+        this.flags.password || await password({ message: 'Type your password' })
       )
     }
 

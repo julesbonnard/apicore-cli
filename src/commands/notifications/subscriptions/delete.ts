@@ -21,13 +21,9 @@ export default class DeleteSubscription extends BaseCommand<typeof DeleteSubscri
   static description = 'Delete notifications subscription'
 
   async run(): Promise<void> {
-    const { args } = await this.parse(DeleteSubscription)
+    await this.apiCore.notificationCenter.deleteSubscription(this.args.serviceName, this.args.subscriptionIdentifier)
+    this.log(`Subscription ${this.args.subscriptionIdentifier} deleted`)
 
-    if (args.serviceName && args.subscriptionIdentifier) {
-      await this.apiCore.notificationCenter.deleteSubscription(args.serviceName, args.subscriptionIdentifier)
-      this.log(`Subscription ${args.subscriptionIdentifier} deleted`)
-    }
-
-    await this.config.runCommand('notifications:subscriptions', [args.serviceName])
+    await this.config.runCommand('notifications:subscriptions', [this.args.serviceName])
   }
 }

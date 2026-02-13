@@ -16,12 +16,8 @@ export default class listSubscriptions extends BaseCommand<typeof listSubscripti
   static description = 'List notifications subscriptions'
 
   async run(): Promise<void> {
-    const { args } = await this.parse(listSubscriptions)
+    const subscriptions = await (this.args.serviceName ? this.apiCore.notificationCenter.subscriptionsInService(this.args.serviceName) : this.apiCore.notificationCenter.listSubscriptions());
 
-    let subscriptions = []
-    subscriptions = await (args.serviceName ? this.apiCore.notificationCenter.subscriptionsInService(args.serviceName) : this.apiCore.notificationCenter.listSubscriptions());
-
-    /* eslint-disable perfectionist/sort-objects */
     table(subscriptions, {
       name: {
         header: 'Subscription Name'
@@ -32,6 +28,5 @@ export default class listSubscriptions extends BaseCommand<typeof listSubscripti
     }, {
       printLine: this.log.bind(this)
     })
-    /* eslint-enable perfectionist/sort-objects */
   }
 }

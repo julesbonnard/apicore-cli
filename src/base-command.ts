@@ -41,16 +41,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     spinner.stop()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected async catch(err: Error & {exitCode?: number}): Promise<any> {
-    return super.catch(err)
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected async finally(_: Error | undefined): Promise<any> {
-    return super.finally(_)
-  }
-
   public async init(): Promise<void> {
     await super.init()
     const { args, flags } = await this.parse({
@@ -77,7 +67,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     this.apiCore.token = this.userConfig.token
     this.apiCore.on('tokenChanged', token => {
       this.userConfig.token = token
-      this.saveUserConfig()
+      this.saveUserConfig().catch(error => { this.warn(`Failed to save config: ${error}`) })
     })
   }
 
@@ -100,7 +90,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       mkdirSync(this.config.configDir, { recursive: true });
     }
 
-    await writeFile(join(this.config.configDir, 'config.json'), JSON.stringify(this.userConfig))
+    await writeFile(join(this.config.configDir, 'config.json'), JSON.stringify(this.userConfig, null, 2))
   }
 
   public setApiKey(apiKey: string): void {

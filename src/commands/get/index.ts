@@ -1,25 +1,8 @@
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
-import { z } from 'zod'
 
 import { BaseCommand } from '../../base-command.js'
-
-/* eslint-disable perfectionist/sort-objects */
-const DocSchema = z.object({
-  afpshortid: z.string(),
-  uno: z.string(),
-  revision: z.number(),
-  countryname: z.string(),
-  city: z.string(),
-  product: z.string(),
-  created: z.coerce.date(),
-  published: z.coerce.date(),
-  lang: z.string(),
-  headline: z.string().optional(),
-  slug: z.string().array().optional(),
-  news: z.string().array().optional()
-})
-/* eslint-enable perfectionist/sort-objects */
+import { GetDocSchema } from '../../schemas/document.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static args = {
@@ -34,18 +17,20 @@ export default class Get extends BaseCommand<typeof Get> {
   public static enableJsonFlag = true
 
   async run(): Promise<void> {
-    const { args } = await this.parse(Get)
-
     let doc
-    if (args.id.length === 7) {
-      const docs = await this.apiCore.search({ afpshortid: args.id, size: 1 })
-      doc = docs.documents[0]
-    } else {
-      doc = await this.apiCore.get(args.id)
+    try {
+      if (this.args.id.length === 7) {
+        const docs = await this.apiCore.search({ afpshortid: this.args.id, size: 1 })
+        doc = docs.documents[0]
+      } else {
+        doc = await this.apiCore.get(this.args.id)
+      }
+    } catch (error) {
+      this.error(`Failed to fetch document ${this.args.id}: ${error}`, { exit: 1 })
     }
 
     if (!doc) {
-      this.error(`Document ${args.id} not found`)
+      this.error(`Document ${this.args.id} not found`, { exit: 1 })
     }
 
     if (this.jsonEnabled()) {
@@ -53,11 +38,11 @@ export default class Get extends BaseCommand<typeof Get> {
       return
     }
 
-    doc = DocSchema.parse(doc)
-    
-    this.log(chalk.bold(doc.headline))
+    const parsed = GetDocSchema.parse(doc)
+
+    this.log(chalk.bold(parsed.headline))
     this.log()
-    this.log(`${doc.countryname.toUpperCase()}, ${doc.city} - ${doc.news?.join(`
+    this.log(`${parsed.countryname.toUpperCase()}, ${parsed.city} - ${parsed.news?.join(`
 
 `)}`)
   }

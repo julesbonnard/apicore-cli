@@ -2,22 +2,9 @@ import { Args, Flags } from '@oclif/core'
 import ora from 'ora'
 import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
-import { z } from 'zod'
 
 import { BaseCommand } from '../../base-command.js'
-
-const DocSchema = z.object({
-  afpshortid: z.string().optional(),
-  uno: z.string(),
-  revision: z.number().optional(),
-  country: z.string().optional(),
-  product: z.string().optional(),
-  created: z.coerce.date(),
-  published: z.coerce.date(),
-  lang: z.string().optional(),
-  headline: z.string().optional(),
-  slug: z.string().array().optional(),
-})
+import { SearchDocSchema } from '../../schemas/document.js'
 
 /**
  * Function to fix double quotes escaping in CSV export
@@ -52,7 +39,7 @@ export default class Search extends BaseCommand<typeof Search> {
   ]
 
   static flags = {
-    fields: Flags.string({char: 'f', default: DocSchema.keyof().options, description: 'Fields to return', multiple: true, required: false}),
+    fields: Flags.string({char: 'f', default: SearchDocSchema.keyof().options, description: 'Fields to return', multiple: true, required: false}),
     from: Flags.string({default: defaultSearchParams.dateFrom, description: 'From date', required: false}),
     langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', multiple: true, required: false}),
     products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', multiple: true, required: false}),
@@ -67,23 +54,21 @@ export default class Search extends BaseCommand<typeof Search> {
   }
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(Search)
-
     const spinner = ora('Searching documents').start()
 
     const docs = []
     for await (const document of this.apiCore.searchAll({
-      dateFrom: flags.from,
-      dateTo: flags.to,
-      langs: flags.langs,
-      product: flags.products,
-      query: args.query,
-      size: flags.size,
-      sortField: flags.sortField,
-      sortOrder: flags.sortOrder as SearchQuerySortOrder
-    }, flags.fields)) {
+      dateFrom: this.flags.from,
+      dateTo: this.flags.to,
+      langs: this.flags.langs,
+      product: this.flags.products,
+      query: this.args.query,
+      size: this.flags.size,
+      sortField: this.flags.sortField,
+      sortOrder: this.flags.sortOrder as SearchQuerySortOrder
+    }, this.flags.fields)) {
       try {
-        const doc = flags.extended ? DocSchema.passthrough().parse(document) : DocSchema.parse(document)
+        const doc = this.flags.extended ? SearchDocSchema.passthrough().parse(document) : SearchDocSchema.parse(document)
         if (this.jsonEnabled()) {
           console.log(JSON.stringify(doc))
         } else {
@@ -92,6 +77,12 @@ export default class Search extends BaseCommand<typeof Search> {
       } catch (error) {
         this.log('Error parsing document', error, document)
       }
+    }
+
+    spinner.stop()
+
+    if (this.jsonEnabled()) {
+      return
     }
 
     table(docs, {
@@ -125,7 +116,7 @@ export default class Search extends BaseCommand<typeof Search> {
       },
       headline: {
         header: 'headline',
-        get: row => flags.csv && row.headline ? fixCSVQuotesExport(row.headline) : row.headline // Fix double quotes escaping in CSV export
+        get: row => this.flags.csv && row.headline ? fixCSVQuotesExport(row.headline) : row.headline
       },
       slug: {
         header: 'slug',
@@ -134,9 +125,7 @@ export default class Search extends BaseCommand<typeof Search> {
       }
     }, {
       printLine: this.log.bind(this),
-      ...flags
+      ...this.flags
     })
-
-    spinner.stop()
   }
 }

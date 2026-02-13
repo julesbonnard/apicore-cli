@@ -78,6 +78,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       this.initApiCore()
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'ENOENT') {
+        // TODO handle case where config file doesn't exist, and ask user to input api key and base url, then save it to config file
         this.warn('No config file found, using defaults')
       } else {
         throw error

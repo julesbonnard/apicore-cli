@@ -4,9 +4,9 @@
     "apicore": "./bin/run.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.2.0",
+    "@inquirer/prompts": "^8.2.1",
     "@oclif/core": "^4.8.0",
-    "afpnews-api": "^2.3.0",
+    "afpnews-api": "^2.4.0",
     "chalk": "^5.6.2",
     "lodash": "^4.17.23",
     "natural-orderby": "^5.0.0",
@@ -22,9 +22,9 @@
     "@types/mocha": "^10",
     "@types/node": "^25",
     "eslint": "^10",
-    "eslint-plugin-n": "^17.23.2",
+    "eslint-plugin-n": "^17.24.0",
     "mocha": "^11",
-    "oclif": "^4.22.77",
+    "oclif": "^4.22.79",
     "shx": "^0.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5",
@@ -62,7 +62,7 @@
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
-  "version": "0.3.0",
+  "version": "0.4.0",
   "bugs": "https://github.com/julesbonnard/apicore-cli/issues",
   "keywords": [
     "oclif"

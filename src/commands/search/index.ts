@@ -4,7 +4,7 @@ import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
-import { SearchDocSchema } from '../../schemas/document.js'
+import { BaseDocSchema } from '../../schemas/document.js'
 
 /**
  * Function to fix double quotes escaping in CSV export
@@ -39,7 +39,7 @@ export default class Search extends BaseCommand<typeof Search> {
   ]
 
   static flags = {
-    fields: Flags.string({char: 'f', default: SearchDocSchema.keyof().options, description: 'Fields to return', multiple: true, required: false}),
+    fields: Flags.string({char: 'f', default: BaseDocSchema.keyof().options, description: 'Fields to return', multiple: true, required: false}),
     from: Flags.string({default: defaultSearchParams.dateFrom, description: 'From date', required: false}),
     langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', multiple: true, required: false}),
     products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', multiple: true, required: false}),
@@ -68,7 +68,7 @@ export default class Search extends BaseCommand<typeof Search> {
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
     }, this.flags.fields)) {
       try {
-        const doc = this.flags.extended ? SearchDocSchema.passthrough().parse(document) : SearchDocSchema.parse(document)
+        const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : BaseDocSchema.parse(document)
         if (this.jsonEnabled()) {
           console.log(JSON.stringify(doc))
         } else {

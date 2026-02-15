@@ -1,28 +1,18 @@
 import { z } from 'zod'
 
-const BaseDocSchema = z.object({
+export const BaseDocSchema = z.object({
   afpshortid: z.string().optional(),
   created: z.coerce.date(),
+  country: z.string().optional(),
+  countryname: z.string().optional(),
+  city: z.string().optional(),
   headline: z.string().optional(),
   lang: z.string().optional(),
   product: z.string().optional(),
   published: z.coerce.date(),
   revision: z.number().optional(),
-  slug: z.string().array().optional(),
+  slug: z.array(z.string()).optional(),
   uno: z.string(),
-})
+  news: z.array(z.string()).optional(),
+});
 
-export const SearchDocSchema = BaseDocSchema.extend({
-  country: z.string().optional(),
-})
-
-export const GetDocSchema = BaseDocSchema.required({
-  revision: true,
-}).extend({
-  city: z.string(),
-  countryname: z.string(),
-  news: z.string().array().optional(),
-})
-
-export type SearchDoc = z.infer<typeof SearchDocSchema>
-export type GetDoc = z.infer<typeof GetDocSchema>

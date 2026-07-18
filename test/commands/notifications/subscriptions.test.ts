@@ -31,4 +31,19 @@ describe('notifications subscriptions', () => {
     assert.ok(args.subscriptionIdentifier)
     assert.equal(args.subscriptionIdentifier.required, true)
   })
+
+  it('create should be loadable', () => {
+    const cmd = config.findCommand('notifications:subscriptions:create')
+    assert.ok(cmd)
+  })
+
+  it('create should require serviceName and subscriptionName args', () => {
+    const cmd = config.findCommand('notifications:subscriptions:create')
+    assert.ok(cmd)
+    const args = cmd.args as Record<string, { required?: boolean }>
+    assert.ok(args.serviceName)
+    assert.equal(args.serviceName.required, true)
+    assert.ok(args.subscriptionName)
+    assert.equal(args.subscriptionName.required, true)
+  })
 })

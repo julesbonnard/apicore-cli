@@ -39,10 +39,10 @@ export default class Search extends BaseCommand<typeof Search> {
   ]
 
   static flags = {
-    fields: Flags.string({char: 'f', default: BaseDocSchema.keyof().options, description: 'Fields to return', multiple: true, required: false}),
+    fields: Flags.string({char: 'f', default: BaseDocSchema.keyof().options.join(','), description: 'Fields to return, separated by commas, like uno,slug', required: false}),
     from: Flags.string({default: defaultSearchParams.dateFrom, description: 'From date', required: false}),
-    langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', multiple: true, required: false}),
-    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', multiple: true, required: false}),
+    langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', required: false}),
+    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', required: false}),
     size: Flags.integer({default: defaultSearchParams.size, description: 'Max number of documents to return', required: false}),
     sortField: Flags.string({default: defaultSearchParams.sortField, description: 'Sort field', required: false}),
     sortOrder: Flags.string({default: defaultSearchParams.sortOrder, description: 'Sort order', options: ['asc', 'desc'], required: false}),
@@ -60,13 +60,13 @@ export default class Search extends BaseCommand<typeof Search> {
     for await (const document of this.apiCore.searchAll({
       dateFrom: this.flags.from,
       dateTo: this.flags.to,
-      langs: this.flags.langs,
-      product: this.flags.products,
+      langs: this.flags.langs?.split(','),
+      product: this.flags.products?.split(','),
       query: this.args.query,
       size: this.flags.size,
       sortField: this.flags.sortField,
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
-    }, this.flags.fields)) {
+    }, this.flags.fields.split(','))) {
       try {
         const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : BaseDocSchema.parse(document)
         if (this.jsonEnabled()) {

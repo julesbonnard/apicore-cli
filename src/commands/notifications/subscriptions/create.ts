@@ -26,8 +26,8 @@ export default class CreateSubscription extends BaseCommand<typeof CreateSubscri
   ]
 
   static flags = {
-    langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', multiple: true, required: false}),
-    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', multiple: true, required: false})
+    langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', required: false}),
+    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', required: false})
   }
 
   async run(): Promise<void> {
@@ -35,8 +35,8 @@ export default class CreateSubscription extends BaseCommand<typeof CreateSubscri
       this.args.subscriptionName,
       this.args.serviceName,
       {
-        langs: this.flags.langs,
-        product: this.flags.products,
+        langs: this.flags.langs?.split(','),
+        product: this.flags.products?.split(','),
         query: this.args.query
       }
     )

@@ -40,10 +40,10 @@ export default class Get extends BaseCommand<typeof Get> {
 
     const parsed = BaseDocSchema.parse(doc)
 
-this.log(chalk.bold(parsed.headline))
-this.log()
-const location = [parsed.countryname?.toUpperCase(), parsed.city].filter(Boolean).join(', ')
-const newsText = parsed.news?.join('\n\n') ?? ''
-this.log(`${location}${location && newsText ? ' - ' : ''}${newsText}`)
+    this.log(chalk.bold(parsed.headline))
+    this.log()
+    const location = [parsed.countryname?.toUpperCase(), parsed.city].filter(Boolean).join(', ')
+    const newsText = parsed.news?.join('\n\n') ?? ''
+    this.log(`${location}${location && newsText ? ' - ' : ''}${newsText}`)
   }
 }

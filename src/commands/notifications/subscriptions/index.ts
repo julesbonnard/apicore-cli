@@ -3,7 +3,7 @@ import { table } from '../../../components/table.js'
 
 import { BaseCommand } from '../../../base-command.js'
 
-export default class listSubscriptions extends BaseCommand<typeof listSubscriptions> {
+export default class ListSubscriptions extends BaseCommand<typeof ListSubscriptions> {
   static args = {
     serviceName: Args.string({
       description: 'Name of the service to list subscriptions for',

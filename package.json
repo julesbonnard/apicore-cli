@@ -1,7 +1,7 @@
 {
   "author": "Jules Bonnard @julesbonnard",
   "bin": {
-    "apicore": "./bin/run.js"
+    "apicore": "bin/run.js"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.5.2",
@@ -46,7 +46,10 @@
       "@oclif/plugin-help"
     ]
   },
-  "repository": "julesbonnard/apicore-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julesbonnard/apicore-cli.git"
+  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "oxlint",

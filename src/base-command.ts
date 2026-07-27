@@ -57,7 +57,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
     if (flags.profile) {
       this.config.configDir = join(this.config.configDir, flags.profile)
-      console.log('Using profile', flags.profile)
+      this.log(`Using profile ${flags.profile}`)
     }
     
     await this.loadUserConfig()

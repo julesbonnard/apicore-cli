@@ -45,11 +45,9 @@ export default class Login extends BaseCommand<typeof Login> {
 
   public logAuthInfo(): void {
     if (!this.userConfig.token) throw new Error('No token found')
-    if (this.jsonEnabled()) {
-      this.log(JSON.stringify(this.userConfig.token, null, 2))
-      return
-    }
-    
+    // JSON output is handled by run()'s return value, via oclif's native --json mechanism
+    if (this.jsonEnabled()) return
+
     const diffTime = timeConvert(this.userConfig.token.tokenExpires - Date.now())
     this.log(`You're authenticated as ${this.getClientId()} for ${diffTime.hours} hours and ${diffTime.minutes} minutes.`)
   }

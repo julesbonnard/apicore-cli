@@ -1,4 +1,4 @@
-import { Args } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 
 import { BaseCommand } from '../../base-command.js'
@@ -16,7 +16,11 @@ export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get document using the API'
   public static enableJsonFlag = true
 
-  async run(): Promise<void> {
+  static flags = {
+    extended: Flags.boolean({default: false, description: 'Return all available fields instead of the base set', required: false})
+  }
+
+  async run(): Promise<unknown> {
     let doc
     try {
       if (this.args.id.length === 7) {
@@ -33,12 +37,14 @@ export default class Get extends BaseCommand<typeof Get> {
       this.error(`Document ${this.args.id} not found`, { exit: 1 })
     }
 
-    if (this.jsonEnabled()) {
-      this.log(JSON.stringify(doc, null, 2))
-      return
-    }
+    // apiCore.get() has no `fields` param to restrict at the API level, so the
+    // base/extended field selection happens client-side: a plain (non-.loose())
+    // zod object schema strips unknown keys by default.
+    const parsed = this.flags.extended ? BaseDocSchema.loose().parse(doc) : BaseDocSchema.parse(doc)
 
-    const parsed = BaseDocSchema.parse(doc)
+    if (this.jsonEnabled()) {
+      return parsed
+    }
 
     this.log(chalk.bold(parsed.headline))
     this.log()

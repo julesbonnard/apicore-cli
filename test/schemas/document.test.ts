@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { BASE_DOC_FIELDS, parseBaseDoc, toApiFields } from '../../src/schemas/document.js'
+import { BASE_DOC_FIELDS, ExtendedDocSchema, parseBaseDoc, toApiFields } from '../../src/schemas/document.js'
 
 const BASE_RAW_DOC = {
   uno: 'newsml.afp.com.20260826T112239Z.doc-c6j92ke',
@@ -41,6 +41,26 @@ describe('toApiFields', () => {
   it('does not duplicate fields already requested', () => {
     const fields = toApiFields(['uno', 'class'])
     assert.equal(fields.filter(f => f === 'class').length, 1)
+  })
+})
+
+describe('ExtendedDocSchema', () => {
+  it('coerces created/published like the SDK schema', () => {
+    const doc = ExtendedDocSchema.parse(BASE_RAW_DOC)
+    assert.ok(doc.created instanceof Date)
+    assert.ok(doc.published instanceof Date)
+  })
+
+  it('passes through raw fields not declared on DocumentSourceSchema (loose mode)', () => {
+    const doc = ExtendedDocSchema.parse({ ...BASE_RAW_DOC, channel: ['/wires/AFP-INT'], mediatopic: ['20000000'] })
+    assert.deepEqual(doc.channel, ['/wires/AFP-INT'])
+    assert.deepEqual(doc.mediatopic, ['20000000'])
+  })
+
+  it('rejects a doc missing a field required by DocumentSourceSchema', () => {
+    const { status: _status, ...docWithoutStatus } = BASE_RAW_DOC
+    const result = ExtendedDocSchema.safeParse(docWithoutStatus)
+    assert.equal(result.success, false)
   })
 })
 

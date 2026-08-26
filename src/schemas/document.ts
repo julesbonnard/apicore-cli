@@ -1,27 +1,33 @@
 import { z } from 'zod'
-import { parseDocument, MANDATORY_RAW_FIELDS, type AfpDocument } from 'afpnews-api'
+import { parseDocument, DocumentSourceSchema, MANDATORY_RAW_FIELDS, type AfpDocument, type AfpDocumentClass } from 'afpnews-api'
 
-// Conservé pour le mode --extended : coerce created/published en Date et laisse tous les
-// autres champs bruts passer tels quels (schema `.loose()`), sans passer par parseDocument().
-export const BaseDocSchema = z.object({
-  afpshortid: z.string().optional(),
-  created: z.coerce.date(),
-  country: z.string().optional(),
-  countryname: z.string().optional(),
-  city: z.string().optional(),
-  headline: z.string().optional(),
-  lang: z.string().optional(),
-  'class': z.string().optional(),
-  published: z.coerce.date(),
-  revision: z.number().optional(),
-  slug: z.array(z.string()).optional(),
-  uno: z.string(),
-  news: z.array(z.string()).optional(),
-})
+// Mode --extended : schéma brut canonique du SDK, en mode `.loose()` pour laisser passer tous
+// les champs bruts non déclarés (channel, keyword, mediatopic, ...) sans passer par parseDocument().
+// Type annoté explicitement : le type inféré de `.loose()` référence des symboles internes de
+// zod non nommables de façon portable d'un package à l'autre (déclarations .d.ts).
+export type ExtendedDoc = z.infer<typeof DocumentSourceSchema> & Record<string, unknown>
+export const ExtendedDocSchema: z.ZodType<ExtendedDoc> = DocumentSourceSchema.loose()
 
-export type BaseDoc = z.infer<typeof BaseDocSchema>
+export type BaseDoc = {
+  afpshortid?: string
+  created: Date
+  country?: string
+  countryname?: string
+  city?: string
+  headline?: string
+  lang: string
+  'class': AfpDocumentClass
+  published: Date
+  revision: number
+  slug?: string[]
+  uno: string
+  news: string[]
+}
 
-export const BASE_DOC_FIELDS = [...BaseDocSchema.keyof().options] as const
+export const BASE_DOC_FIELDS = [
+  'afpshortid', 'created', 'country', 'countryname', 'city', 'headline',
+  'lang', 'class', 'published', 'revision', 'slug', 'uno', 'news',
+] as const
 
 /** Ajoute le socle requis par parseDocument() à une liste de champs à demander à l'API. */
 export function toApiFields(fields: readonly string[]): string[] {

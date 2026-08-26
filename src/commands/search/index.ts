@@ -4,7 +4,7 @@ import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
-import { BaseDocSchema, BASE_DOC_FIELDS, toBaseDoc, toApiFields } from '../../schemas/document.js'
+import { ExtendedDocSchema, BASE_DOC_FIELDS, toBaseDoc, toApiFields } from '../../schemas/document.js'
 
 export default class Search extends BaseCommand<typeof Search> {
   static args = {
@@ -78,7 +78,7 @@ export default class Search extends BaseCommand<typeof Search> {
         // A document is genuinely malformed here sometimes, but aborting the whole search over
         // one bad document would be worse: skip and warn instead. Note this.warn is a no-op
         // under --json, so a parse failure won't be visible there.
-        const doc = BaseDocSchema.loose().safeParse(document).data
+        const doc = ExtendedDocSchema.safeParse(document).data
         if (!doc) {
           this.warn(`Error parsing document: ${JSON.stringify(document)}`)
           continue

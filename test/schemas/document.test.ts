@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { BASE_DOC_FIELDS, parseBaseDoc, safeParseBaseDoc, toApiFields } from '../../src/schemas/document.js'
+import { BASE_DOC_FIELDS, parseBaseDoc, toApiFields } from '../../src/schemas/document.js'
 
 const BASE_RAW_DOC = {
   uno: 'newsml.afp.com.20260826T112239Z.doc-c6j92ke',
@@ -18,7 +18,6 @@ const BASE_RAW_DOC = {
   countryname: 'Spain',
   city: 'Sant Joan Despí',
   slug: ['sport', 'football'],
-  product: 'news',
 }
 
 const VIDEO_RAW_DOC = {
@@ -63,9 +62,9 @@ describe('parseBaseDoc', () => {
     assert.ok(doc.published instanceof Date)
   })
 
-  it('reads product straight off the raw document (not modeled by AfpDocument)', () => {
+  it('reads class from the parsed AfpDocument', () => {
     const doc = parseBaseDoc(BASE_RAW_DOC)
-    assert.equal(doc.product, 'news')
+    assert.equal(doc.class, 'text')
   })
 
   it('reads news from paragraphs for a text document', () => {
@@ -77,17 +76,5 @@ describe('parseBaseDoc', () => {
     const doc = parseBaseDoc(VIDEO_RAW_DOC)
     assert.ok(doc.news && doc.news.some(line => line.includes('Players arrive at training')))
     assert.ok(doc.news && doc.news.some(line => line.includes('We are ready for the match.')))
-  })
-})
-
-describe('safeParseBaseDoc', () => {
-  it('returns the same result as parseBaseDoc for a valid document', () => {
-    const doc = safeParseBaseDoc(BASE_RAW_DOC)
-    assert.equal(doc?.uno, BASE_RAW_DOC.uno)
-    assert.equal(doc?.product, 'news')
-  })
-
-  it('returns undefined instead of throwing for a malformed document', () => {
-    assert.equal(safeParseBaseDoc({ uno: 'incomplete' }), undefined)
   })
 })

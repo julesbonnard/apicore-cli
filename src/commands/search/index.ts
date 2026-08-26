@@ -4,7 +4,7 @@ import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
-import { BaseDocSchema, BASE_DOC_FIELDS, safeParseBaseDoc, toApiFields } from '../../schemas/document.js'
+import { BaseDocSchema, BASE_DOC_FIELDS, toBaseDoc, toApiFields } from '../../schemas/document.js'
 
 /**
  * Function to fix double quotes escaping in CSV export
@@ -62,8 +62,7 @@ export default class Search extends BaseCommand<typeof Search> {
         ? [] // fields: [] means "no restriction" server-side — --extended must not add the socle on top
         : toApiFields(BASE_DOC_FIELDS)
 
-    const docs = []
-    for await (const document of this.apiCore.searchAll({
+    const params = {
       dateFrom: this.flags.from,
       dateTo: this.flags.to,
       langs: this.flags.langs?.split(','),
@@ -72,15 +71,12 @@ export default class Search extends BaseCommand<typeof Search> {
       size: this.flags.size,
       sortField: this.flags.sortField,
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
-    }, fields)) {
-      // A document is genuinely malformed here sometimes, but aborting the whole search over
-      // one bad document would be worse: skip and warn instead. Note this.warn is a no-op
-      // under --json, so a parse failure won't be visible there.
-      const doc = this.flags.extended ? BaseDocSchema.loose().safeParse(document).data : safeParseBaseDoc(document)
-      if (!doc) {
-        this.warn(`Error parsing document: ${JSON.stringify(document)}`)
-        continue
-      }
+    }
+
+    // Deux formes possibles (BaseDoc en mode normal, objet libre en mode --extended) : même
+    // duplicité que le typage libre de `table()` plus bas, pas resserré ici pour la même raison.
+    const docs: any[] = []
+    const emit = (doc: any) => {
       if (this.jsonEnabled()) {
         // Streamed as NDJSON (one line per document) instead of collected and returned,
         // so large exports aren't buffered in memory. This bypasses oclif's native
@@ -88,6 +84,25 @@ export default class Search extends BaseCommand<typeof Search> {
         console.log(JSON.stringify(doc))
       } else {
         docs.push(doc)
+      }
+    }
+
+    if (this.flags.extended) {
+      for await (const document of this.apiCore.searchAll(params, fields)) {
+        // A document is genuinely malformed here sometimes, but aborting the whole search over
+        // one bad document would be worse: skip and warn instead. Note this.warn is a no-op
+        // under --json, so a parse failure won't be visible there.
+        const doc = BaseDocSchema.loose().safeParse(document).data
+        if (!doc) {
+          this.warn(`Error parsing document: ${JSON.stringify(document)}`)
+          continue
+        }
+        emit(doc)
+      }
+    } else {
+      // { parse: true, lenient: true } : le SDK saute déjà les documents malformés du lot.
+      for await (const doc of this.apiCore.searchAll(params, fields, { parse: true, lenient: true })) {
+        emit(toBaseDoc(doc))
       }
     }
 
@@ -111,8 +126,8 @@ export default class Search extends BaseCommand<typeof Search> {
         header: 'country',
         extended: true
       },
-      product: {
-        header: 'product'
+      'class': {
+        header: 'class'
       },
       created: {
         header: 'created',

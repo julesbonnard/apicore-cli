@@ -6,20 +6,6 @@ import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 import { BaseCommand } from '../../base-command.js'
 import { BaseDocSchema, BASE_DOC_FIELDS, toBaseDoc, toApiFields } from '../../schemas/document.js'
 
-/**
- * Function to fix double quotes escaping in CSV export
- * Issue in OCLIF table module, see https://github.com/oclif/core/issues/944
- * @param {string} value - The value to fix
- * @returns string
- */
-function fixCSVQuotesExport (value: string) {
-  let i = 0
-  return value.replaceAll('"', () => {
-    i++
-    return i > 1 ? '""' : '"'
-  })
-}
-
 export default class Search extends BaseCommand<typeof Search> {
   static args = {
     query: Args.string({
@@ -142,8 +128,7 @@ export default class Search extends BaseCommand<typeof Search> {
         header: 'lang'
       },
       headline: {
-        header: 'headline',
-        get: row => this.flags.csv && row.headline ? fixCSVQuotesExport(row.headline) : row.headline
+        header: 'headline'
       },
       slug: {
         header: 'slug',

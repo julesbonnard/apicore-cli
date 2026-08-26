@@ -136,7 +136,7 @@ class Table<T extends Record<string, unknown>> {
   private getCSVRow(d: Record<string, string>): string[] {
     const values = this.columns.map(col => d[col.key] || '')
     const lineToBeEscaped = values.find((e: string) => e.includes('"') || e.includes('\n') || e.includes('\r\n') || e.includes('\r') || e.includes(','))
-    return values.map(e => lineToBeEscaped ? `"${e.replace('"', '""')}"` : e)
+    return values.map(e => lineToBeEscaped ? `"${e.replaceAll('"', '""')}"` : e)
   }
 
   private resolveColumnsToObjectArray() {

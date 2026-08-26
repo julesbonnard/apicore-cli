@@ -4,7 +4,7 @@ import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
-import { BaseDocSchema, BASE_DOC_FIELDS, parseBaseDoc, toApiFields } from '../../schemas/document.js'
+import { BaseDocSchema, BASE_DOC_FIELDS, safeParseBaseDoc, toApiFields } from '../../schemas/document.js'
 
 /**
  * Function to fix double quotes escaping in CSV export
@@ -73,21 +73,21 @@ export default class Search extends BaseCommand<typeof Search> {
       sortField: this.flags.sortField,
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
     }, fields)) {
-      try {
-        const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : parseBaseDoc(document)
-        if (this.jsonEnabled()) {
-          // Streamed as NDJSON (one line per document) instead of collected and returned,
-          // so large exports aren't buffered in memory. This bypasses oclif's native
-          // --json handling (return value -> logJson), which only fits a single value.
-          console.log(JSON.stringify(doc))
-        } else {
-          docs.push(doc)
-        }
-      } catch (error) {
-        // A document is genuinely malformed here, but aborting the whole search
-        // over one bad document would be worse: warn and keep going. Note this.warn
-        // is a no-op under --json, so a parse failure won't be visible there.
-        this.warn(`Error parsing document: ${error} ${JSON.stringify(document)}`)
+      // A document is genuinely malformed here sometimes, but aborting the whole search over
+      // one bad document would be worse: skip and warn instead. Note this.warn is a no-op
+      // under --json, so a parse failure won't be visible there.
+      const doc = this.flags.extended ? BaseDocSchema.loose().safeParse(document).data : safeParseBaseDoc(document)
+      if (!doc) {
+        this.warn(`Error parsing document: ${JSON.stringify(document)}`)
+        continue
+      }
+      if (this.jsonEnabled()) {
+        // Streamed as NDJSON (one line per document) instead of collected and returned,
+        // so large exports aren't buffered in memory. This bypasses oclif's native
+        // --json handling (return value -> logJson), which only fits a single value.
+        console.log(JSON.stringify(doc))
+      } else {
+        docs.push(doc)
       }
     }
 

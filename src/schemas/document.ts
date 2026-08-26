@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { parseDocument, type AfpDocument } from 'afpnews-api'
+import { parseDocument, safeParseDocument, MANDATORY_RAW_FIELDS, type AfpDocument } from 'afpnews-api'
 
 // Conservé pour le mode --extended : coerce created/published en Date et laisse tous les
 // autres champs bruts passer tels quels (schema `.loose()`), sans passer par parseDocument().
@@ -23,26 +23,21 @@ export type BaseDoc = z.infer<typeof BaseDocSchema>
 
 export const BASE_DOC_FIELDS = [...BaseDocSchema.keyof().options] as const
 
-// Champs bruts que parseDocument() exige toujours (DocumentSourceSchema du SDK), quels que
-// soient les champs demandés par l'appelant.
-const MANDATORY_API_FIELDS = ['uno', 'class', 'urgency', 'created', 'published', 'revision', 'provider', 'status', 'lang']
-
 /** Ajoute le socle requis par parseDocument() à une liste de champs à demander à l'API. */
 export function toApiFields(fields: readonly string[]): string[] {
-  return [...new Set([...fields, ...MANDATORY_API_FIELDS])]
+  return [...new Set([...fields, ...MANDATORY_RAW_FIELDS])]
 }
 
 /**
- * Parse un document brut via le modèle canonique afpnews-api (AfpDocument), puis le
- * ramène au vocabulaire de sortie historique du CLI (mêmes noms de champs, même forme
- * JSON) — c'est le seul pont entre le modèle du SDK et le contrat public de cette CLI.
+ * Ramène un AfpDocument déjà parsé au vocabulaire de sortie historique du CLI (mêmes noms de
+ * champs, même forme JSON) — c'est le seul pont entre le modèle du SDK et le contrat public de
+ * cette CLI.
  *
  * `product` n'existe pas sur AfpDocument (distinct de `class` : encode la ligne de
- * produit/fournisseur — ex. `photo` vs `getty_extra` — pas le type de contenu) et se lit
- * donc directement sur le document brut plutôt que sur le modèle parsé.
+ * produit/fournisseur — ex. `photo` vs `getty_extra` — pas le type de contenu) : `raw` doit donc
+ * rester disponible à côté du modèle parsé pour continuer à le lire.
  */
-export function parseBaseDoc(raw: unknown): BaseDoc {
-  const doc: AfpDocument = parseDocument(raw)
+function toBaseDoc(doc: AfpDocument, raw: unknown): BaseDoc {
   const rawProduct = (raw as { product?: unknown })?.product
 
   return {
@@ -60,6 +55,20 @@ export function parseBaseDoc(raw: unknown): BaseDoc {
     uno: doc.uno,
     news: newsLines(doc),
   }
+}
+
+/** Parse un document brut ; lève si `raw` ne correspond pas au modèle canonique. */
+export function parseBaseDoc(raw: unknown): BaseDoc {
+  return toBaseDoc(parseDocument(raw), raw)
+}
+
+/**
+ * Comme parseBaseDoc(), mais renvoie undefined au lieu de lever sur un document malformé —
+ * pour sauter un document invalide dans un lot (recherche) sans faire échouer tout l'appel.
+ */
+export function safeParseBaseDoc(raw: unknown): BaseDoc | undefined {
+  const doc = safeParseDocument(raw)
+  return doc ? toBaseDoc(doc, raw) : undefined
 }
 
 // Une vidéo n'a pas de paragraphs sur AfpDocument (le SDK y peuple `shots` à la place) —

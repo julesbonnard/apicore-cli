@@ -4,7 +4,7 @@ import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
-import { BaseDocSchema } from '../../schemas/document.js'
+import { BaseDocSchema, BASE_DOC_FIELDS, parseBaseDoc, toApiFields } from '../../schemas/document.js'
 
 /**
  * Function to fix double quotes escaping in CSV export
@@ -57,10 +57,10 @@ export default class Search extends BaseCommand<typeof Search> {
     const spinner = ora('Searching documents').start()
 
     const fields = this.flags.fields
-      ? this.flags.fields.split(',')
+      ? toApiFields(this.flags.fields.split(','))
       : this.flags.extended
-        ? []
-        : [...BaseDocSchema.keyof().options]
+        ? [] // fields: [] means "no restriction" server-side — --extended must not add the socle on top
+        : toApiFields(BASE_DOC_FIELDS)
 
     const docs = []
     for await (const document of this.apiCore.searchAll({
@@ -74,7 +74,7 @@ export default class Search extends BaseCommand<typeof Search> {
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
     }, fields)) {
       try {
-        const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : BaseDocSchema.parse(document)
+        const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : parseBaseDoc(document)
         if (this.jsonEnabled()) {
           // Streamed as NDJSON (one line per document) instead of collected and returned,
           // so large exports aren't buffered in memory. This bypasses oclif's native

@@ -60,8 +60,8 @@ Search documents with filters and multiple output formats.
 # Basic search
 apicore search "france"
 
-# Filter by language and product
-apicore search "elections" -l fr,es -p news
+# Filter by language and class
+apicore search "elections" -l fr,es -c text
 
 # Date range
 apicore search --from 2024-01-01 --to 2024-06-01
@@ -80,9 +80,9 @@ apicore search --table --extended
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--fields` | `-f` | Fields to return | afpshortid, created, country, countryname, city, headline, lang, product, published, revision, slug, uno, news |
+| `--fields` | `-f` | Fields to return | afpshortid, created, country, countryname, city, headline, lang, class, published, revision, slug, uno, news |
 | `--langs` | `-l` | Filter by languages (comma-separated) | |
-| `--products` | `-p` | Filter by products (comma-separated) | |
+| `--class` | `-c` | Filter by document class (comma-separated) | |
 | `--from` | | Start date | 1980-01-01 |
 | `--to` | | End date | now |
 | `--size` | | Max documents to return | 10 |

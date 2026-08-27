@@ -60,7 +60,7 @@
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
-  "version": "0.5.2",
+  "version": "0.6.0-next.0",
   "bugs": "https://github.com/julesbonnard/apicore-cli/issues",
   "keywords": [
     "oclif"

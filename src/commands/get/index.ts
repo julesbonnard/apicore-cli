@@ -2,7 +2,7 @@ import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 
 import { BaseCommand } from '../../base-command.js'
-import { BaseDocSchema } from '../../schemas/document.js'
+import { ExtendedDocSchema, parseBaseDoc } from '../../schemas/document.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static args = {
@@ -38,9 +38,9 @@ export default class Get extends BaseCommand<typeof Get> {
     }
 
     // apiCore.get() has no `fields` param to restrict at the API level, so the
-    // base/extended field selection happens client-side: a plain (non-.loose())
-    // zod object schema strips unknown keys by default.
-    const parsed = this.flags.extended ? BaseDocSchema.loose().parse(doc) : BaseDocSchema.parse(doc)
+    // base/extended field selection happens client-side: --extended keeps the raw
+    // document as-is, the base case goes through parseDocument() (AfpDocument).
+    const parsed = this.flags.extended ? this.parseExtended(doc) : parseBaseDoc(doc)
 
     if (this.jsonEnabled()) {
       return parsed
@@ -51,5 +51,13 @@ export default class Get extends BaseCommand<typeof Get> {
     const location = [parsed.countryname?.toUpperCase(), parsed.city].filter(Boolean).join(', ')
     const newsText = parsed.news?.join('\n\n') ?? ''
     this.log(`${location}${location && newsText ? ' - ' : ''}${newsText}`)
+  }
+
+  private parseExtended(doc: unknown) {
+    const result = ExtendedDocSchema.safeParse(doc)
+    if (!result.success) {
+      this.error(`Error parsing document: ${JSON.stringify(doc)}`, { exit: 1 })
+    }
+    return result.data
   }
 }

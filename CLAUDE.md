@@ -61,7 +61,7 @@ Commands live in `src/commands/` and map to the CLI via directory structure with
 
 - `src/components/table.ts` — custom table renderer with responsive column sizing, CSV/JSON export, filtering, and sorting (no external table library dependency)
 - `src/components/screen.ts` — terminal width detection utilities
-- `src/schemas/document.ts` — zod schema for API documents (used by `get`/`search`)
+- `src/schemas/document.ts` — base document vocabulary for `get`/`search`. `parseBaseDoc()` parses raw AFP payloads via afpnews-api's canonical `parseDocument()`/`AfpDocument` model, then maps back to the CLI's historical field names/shape (`FIELD_ACCESSORS`-style bridge — output contract stays stable even if `AfpDocument`'s internal shape changes). `--extended` bypasses this entirely and keeps `BaseDocSchema.loose()` on the raw document, since it exists specifically to show fields `AfpDocument` doesn't model (e.g. `product`, read directly off the raw payload either way).
 - `src/schemas/notification.ts` — zod schemas for the four notification service data shapes (mail/rest/sqs/jms), used to validate `notifications services create --datas` client-side before hitting the API
 
 ### Key Libraries

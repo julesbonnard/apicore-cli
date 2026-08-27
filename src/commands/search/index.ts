@@ -4,21 +4,7 @@ import { table } from '../../components/table.js'
 import { SearchQuerySortOrder, defaultSearchParams } from 'afpnews-api'
 
 import { BaseCommand } from '../../base-command.js'
-import { BaseDocSchema } from '../../schemas/document.js'
-
-/**
- * Function to fix double quotes escaping in CSV export
- * Issue in OCLIF table module, see https://github.com/oclif/core/issues/944
- * @param {string} value - The value to fix
- * @returns string
- */
-function fixCSVQuotesExport (value: string) {
-  let i = 0
-  return value.replaceAll('"', () => {
-    i++
-    return i > 1 ? '""' : '"'
-  })
-}
+import { ExtendedDocSchema, BASE_DOC_FIELDS, toBaseDoc, toApiFields } from '../../schemas/document.js'
 
 export default class Search extends BaseCommand<typeof Search> {
   static args = {
@@ -42,7 +28,7 @@ export default class Search extends BaseCommand<typeof Search> {
     fields: Flags.string({char: 'f', description: 'Fields to return, separated by commas, like uno,slug. Defaults to a base set of fields, or all available fields when --extended is set', required: false}),
     from: Flags.string({default: defaultSearchParams.dateFrom, description: 'From date', required: false}),
     langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', required: false}),
-    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', required: false}),
+    class: Flags.string({char: 'c', description: 'Document classes separated by commas, like text,picture', required: false}),
     size: Flags.integer({default: defaultSearchParams.size, description: 'Max number of documents to return', required: false}),
     sortField: Flags.string({default: defaultSearchParams.sortField, description: 'Sort field', required: false}),
     sortOrder: Flags.string({default: defaultSearchParams.sortOrder, description: 'Sort order', options: ['asc', 'desc'], required: false}),
@@ -57,37 +43,52 @@ export default class Search extends BaseCommand<typeof Search> {
     const spinner = ora('Searching documents').start()
 
     const fields = this.flags.fields
-      ? this.flags.fields.split(',')
+      ? toApiFields(this.flags.fields.split(','))
       : this.flags.extended
-        ? []
-        : [...BaseDocSchema.keyof().options]
+        ? [] // fields: [] means "no restriction" server-side — --extended must not add the socle on top
+        : toApiFields(BASE_DOC_FIELDS)
 
-    const docs = []
-    for await (const document of this.apiCore.searchAll({
+    const params = {
       dateFrom: this.flags.from,
       dateTo: this.flags.to,
       langs: this.flags.langs?.split(','),
-      product: this.flags.products?.split(','),
+      'class': this.flags.class?.split(','),
       query: this.args.query,
       size: this.flags.size,
       sortField: this.flags.sortField,
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
-    }, fields)) {
-      try {
-        const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : BaseDocSchema.parse(document)
-        if (this.jsonEnabled()) {
-          // Streamed as NDJSON (one line per document) instead of collected and returned,
-          // so large exports aren't buffered in memory. This bypasses oclif's native
-          // --json handling (return value -> logJson), which only fits a single value.
-          console.log(JSON.stringify(doc))
-        } else {
-          docs.push(doc)
+    }
+
+    // Deux formes possibles (BaseDoc en mode normal, objet libre en mode --extended) : même
+    // duplicité que le typage libre de `table()` plus bas, pas resserré ici pour la même raison.
+    const docs: any[] = []
+    const emit = (doc: any) => {
+      if (this.jsonEnabled()) {
+        // Streamed as NDJSON (one line per document) instead of collected and returned,
+        // so large exports aren't buffered in memory. This bypasses oclif's native
+        // --json handling (return value -> logJson), which only fits a single value.
+        console.log(JSON.stringify(doc))
+      } else {
+        docs.push(doc)
+      }
+    }
+
+    if (this.flags.extended) {
+      for await (const document of this.apiCore.searchAll(params, fields)) {
+        // A document is genuinely malformed here sometimes, but aborting the whole search over
+        // one bad document would be worse: skip and warn instead. Note this.warn is a no-op
+        // under --json, so a parse failure won't be visible there.
+        const doc = ExtendedDocSchema.safeParse(document).data
+        if (!doc) {
+          this.warn(`Error parsing document: ${JSON.stringify(document)}`)
+          continue
         }
-      } catch (error) {
-        // A document is genuinely malformed here, but aborting the whole search
-        // over one bad document would be worse: warn and keep going. Note this.warn
-        // is a no-op under --json, so a parse failure won't be visible there.
-        this.warn(`Error parsing document: ${error} ${JSON.stringify(document)}`)
+        emit(doc)
+      }
+    } else {
+      // { parse: true, lenient: true } : le SDK saute déjà les documents malformés du lot.
+      for await (const doc of this.apiCore.searchAll(params, fields, { parse: true, lenient: true })) {
+        emit(toBaseDoc(doc))
       }
     }
 
@@ -111,8 +112,8 @@ export default class Search extends BaseCommand<typeof Search> {
         header: 'country',
         extended: true
       },
-      product: {
-        header: 'product'
+      'class': {
+        header: 'class'
       },
       created: {
         header: 'created',
@@ -127,8 +128,7 @@ export default class Search extends BaseCommand<typeof Search> {
         header: 'lang'
       },
       headline: {
-        header: 'headline',
-        get: row => this.flags.csv && row.headline ? fixCSVQuotesExport(row.headline) : row.headline
+        header: 'headline'
       },
       slug: {
         header: 'slug',

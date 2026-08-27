@@ -1,0 +1,100 @@
+import { strict as assert } from 'node:assert'
+import { BASE_DOC_FIELDS, ExtendedDocSchema, parseBaseDoc, toApiFields } from '../../src/schemas/document.js'
+
+const BASE_RAW_DOC = {
+  uno: 'newsml.afp.com.20260826T112239Z.doc-c6j92ke',
+  afpshortid: 'c6j92ke',
+  headline: 'Test headline',
+  news: ['First paragraph.', 'Second paragraph.'],
+  lang: 'en',
+  urgency: 4,
+  created: '2026-08-26T11:22:39Z',
+  published: '2026-08-26T11:39:26Z',
+  revision: 2,
+  provider: 'AFP',
+  status: 'Usable',
+  'class': 'text',
+  country: 'esp',
+  countryname: 'Spain',
+  city: 'Sant Joan Despí',
+  slug: ['sport', 'football'],
+}
+
+const VIDEO_RAW_DOC = {
+  ...BASE_RAW_DOC,
+  'class': 'video',
+  news: [
+    '1. 00:05-00:09 Players arrive at training',
+    '2. 00:09-00:14 SOUNDBITE 1 - Coach (male, English, 10 sec):',
+    '"We are ready for the match."',
+  ],
+}
+
+describe('toApiFields', () => {
+  it('adds the mandatory socle required by parseDocument()', () => {
+    const fields = toApiFields(['uno', 'headline'])
+    for (const f of ['class', 'urgency', 'created', 'published', 'revision', 'provider', 'status', 'lang']) {
+      assert.ok(fields.includes(f), `expected ${f} in ${fields}`)
+    }
+  })
+
+  it('does not duplicate fields already requested', () => {
+    const fields = toApiFields(['uno', 'class'])
+    assert.equal(fields.filter(f => f === 'class').length, 1)
+  })
+})
+
+describe('ExtendedDocSchema', () => {
+  it('coerces created/published like the SDK schema', () => {
+    const doc = ExtendedDocSchema.parse(BASE_RAW_DOC)
+    assert.ok(doc.created instanceof Date)
+    assert.ok(doc.published instanceof Date)
+  })
+
+  it('passes through raw fields not declared on DocumentSourceSchema (loose mode)', () => {
+    const doc = ExtendedDocSchema.parse({ ...BASE_RAW_DOC, channel: ['/wires/AFP-INT'], mediatopic: ['20000000'] })
+    assert.deepEqual(doc.channel, ['/wires/AFP-INT'])
+    assert.deepEqual(doc.mediatopic, ['20000000'])
+  })
+
+  it('rejects a doc missing a field required by DocumentSourceSchema', () => {
+    const { status: _status, ...docWithoutStatus } = BASE_RAW_DOC
+    const result = ExtendedDocSchema.safeParse(docWithoutStatus)
+    assert.equal(result.success, false)
+  })
+})
+
+describe('parseBaseDoc', () => {
+  it('preserves the historical field vocabulary and shape', () => {
+    const doc = parseBaseDoc(BASE_RAW_DOC)
+    assert.deepEqual(Object.keys(doc).toSorted(), [...BASE_DOC_FIELDS].toSorted())
+  })
+
+  it('keeps country and countryname as separate fields', () => {
+    const doc = parseBaseDoc(BASE_RAW_DOC)
+    assert.equal(doc.country, 'esp')
+    assert.equal(doc.countryname, 'Spain')
+  })
+
+  it('returns created/published as Date instances', () => {
+    const doc = parseBaseDoc(BASE_RAW_DOC)
+    assert.ok(doc.created instanceof Date)
+    assert.ok(doc.published instanceof Date)
+  })
+
+  it('reads class from the parsed AfpDocument', () => {
+    const doc = parseBaseDoc(BASE_RAW_DOC)
+    assert.equal(doc.class, 'text')
+  })
+
+  it('reads news from paragraphs for a text document', () => {
+    const doc = parseBaseDoc(BASE_RAW_DOC)
+    assert.deepEqual(doc.news, ['First paragraph.', 'Second paragraph.'])
+  })
+
+  it('falls back to a rendered shot list for a video document (no paragraphs on AfpDocument)', () => {
+    const doc = parseBaseDoc(VIDEO_RAW_DOC)
+    assert.ok(doc.news && doc.news.some(line => line.includes('Players arrive at training')))
+    assert.ok(doc.news && doc.news.some(line => line.includes('We are ready for the match.')))
+  })
+})

@@ -39,10 +39,10 @@ export default class Search extends BaseCommand<typeof Search> {
   ]
 
   static flags = {
-    fields: Flags.string({char: 'f', default: BaseDocSchema.keyof().options, description: 'Fields to return', multiple: true, required: false}),
+    fields: Flags.string({char: 'f', description: 'Fields to return, separated by commas, like uno,slug. Defaults to a base set of fields, or all available fields when --extended is set', required: false}),
     from: Flags.string({default: defaultSearchParams.dateFrom, description: 'From date', required: false}),
-    langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', multiple: true, required: false}),
-    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', multiple: true, required: false}),
+    langs: Flags.string({char: 'l', description: 'Langs separated by commas, like fr,es', required: false}),
+    products: Flags.string({char: 'p', description: 'Products separated by commas, like news,photo', required: false}),
     size: Flags.integer({default: defaultSearchParams.size, description: 'Max number of documents to return', required: false}),
     sortField: Flags.string({default: defaultSearchParams.sortField, description: 'Sort field', required: false}),
     sortOrder: Flags.string({default: defaultSearchParams.sortOrder, description: 'Sort order', options: ['asc', 'desc'], required: false}),
@@ -56,26 +56,38 @@ export default class Search extends BaseCommand<typeof Search> {
   async run(): Promise<void> {
     const spinner = ora('Searching documents').start()
 
+    const fields = this.flags.fields
+      ? this.flags.fields.split(',')
+      : this.flags.extended
+        ? []
+        : [...BaseDocSchema.keyof().options]
+
     const docs = []
     for await (const document of this.apiCore.searchAll({
       dateFrom: this.flags.from,
       dateTo: this.flags.to,
-      langs: this.flags.langs,
-      product: this.flags.products,
+      langs: this.flags.langs?.split(','),
+      product: this.flags.products?.split(','),
       query: this.args.query,
       size: this.flags.size,
       sortField: this.flags.sortField,
       sortOrder: this.flags.sortOrder as SearchQuerySortOrder
-    }, this.flags.fields)) {
+    }, fields)) {
       try {
         const doc = this.flags.extended ? BaseDocSchema.loose().parse(document) : BaseDocSchema.parse(document)
         if (this.jsonEnabled()) {
+          // Streamed as NDJSON (one line per document) instead of collected and returned,
+          // so large exports aren't buffered in memory. This bypasses oclif's native
+          // --json handling (return value -> logJson), which only fits a single value.
           console.log(JSON.stringify(doc))
         } else {
           docs.push(doc)
         }
       } catch (error) {
-        this.log('Error parsing document', error, document)
+        // A document is genuinely malformed here, but aborting the whole search
+        // over one bad document would be worse: warn and keep going. Note this.warn
+        // is a no-op under --json, so a parse failure won't be visible there.
+        this.warn(`Error parsing document: ${error} ${JSON.stringify(document)}`)
       }
     }
 

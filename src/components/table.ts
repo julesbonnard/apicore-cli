@@ -2,12 +2,17 @@ import * as Interfaces from '@oclif/core/interfaces'
 import * as F from '@oclif/core/flags'
 import {stdtermwidth} from './screen.js'
 import chalk from 'chalk'
-import lodash from 'lodash'
 import { inspect } from 'util'
 import sw from 'string-width'
 import { orderBy } from 'natural-orderby'
 
-const { capitalize, sumBy } = lodash
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+}
+
+function sumBy<T>(items: T[], iteratee: (item: T) => number): number {
+  return items.reduce((sum, item) => sum + iteratee(item), 0)
+}
 
 class Table<T extends Record<string, unknown>> {
   options: table.Options & { printLine(s: string): void; rowStart: string }
@@ -121,7 +126,7 @@ class Table<T extends Record<string, unknown>> {
     filters = [...(new Set(filters))]
     const cols: (table.Column<T> & {key: string; width?: number; maxWidth?: number})[] = []
     for (const f of filters) {
-      const c = this.columns.find(c => c.header.toLowerCase() === f.toLowerCase())
+      const c = this.columns.find(col => col.header.toLowerCase() === f.toLowerCase())
       if (c) cols.push(c)
     }
 
@@ -211,7 +216,7 @@ class Table<T extends Record<string, unknown>> {
 
       // some wiggle room left, add it back to "needy" columns
       let wiggleRoom = maxWidth - dataMinWidth
-      const needyCols = columns.map(c => ({key: c.key, needs: c.maxWidth! - c.width!})).sort((a, b) => a.needs - b.needs)
+      const needyCols = columns.map(c => ({key: c.key, needs: c.maxWidth! - c.width!})).toSorted((a, b) => a.needs - b.needs)
       for (const {key, needs} of needyCols) {
         if (!needs) continue
         const col = columns.find(c => key === c.key)
@@ -269,7 +274,7 @@ class Table<T extends Record<string, unknown>> {
         if (lines > numOfLines) numOfLines = lines
       }
 
-      const linesIndexes = [...new Array(numOfLines).keys()]
+      const linesIndexes = Array.from({length: numOfLines}, (_, i) => i)
 
       // print row
       // including multi-lines

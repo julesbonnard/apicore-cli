@@ -29,4 +29,20 @@ describe('notifications services', () => {
     assert.ok(args.serviceName)
     assert.equal(args.serviceName.required, true)
   })
+
+  it('create should be loadable', () => {
+    const cmd = config.findCommand('notifications:services:create')
+    assert.ok(cmd)
+  })
+
+  it('create should require name arg and type/datas flags', () => {
+    const cmd = config.findCommand('notifications:services:create')
+    assert.ok(cmd)
+    const args = cmd.args as Record<string, { required?: boolean }>
+    assert.ok(args.name)
+    assert.equal(args.name.required, true)
+    const flagNames = Object.keys(cmd.flags)
+    assert.ok(flagNames.includes('type'))
+    assert.ok(flagNames.includes('datas'))
+  })
 })

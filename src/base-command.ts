@@ -1,6 +1,7 @@
 import { Command, Flags, Interfaces } from '@oclif/core'
 import ora from 'ora';
-import { ApiCore, type AuthToken } from 'afpnews-api'
+import { input } from '@inquirer/prompts'
+import { ApiCore, defaultBaseUrl, type AuthToken } from 'afpnews-api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -56,7 +57,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
     if (flags.profile) {
       this.config.configDir = join(this.config.configDir, flags.profile)
-      console.log('Using profile', flags.profile)
+      this.log(`Using profile ${flags.profile}`)
     }
     
     await this.loadUserConfig()
@@ -78,12 +79,29 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       this.initApiCore()
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'ENOENT') {
-        // TODO handle case where config file doesn't exist, and ask user to input api key and base url, then save it to config file
-        this.warn('No config file found, using defaults')
+        await this.createUserConfig()
       } else {
         throw error
       }
     }
+  }
+
+  public async createUserConfig(): Promise<void> {
+    // The `login` command already has its own onboarding flow (flags/prompts),
+    // and non-interactive environments (CI, --json) can't answer prompts.
+    if (this.id === 'login' || !process.stdin.isTTY || this.jsonEnabled()) {
+      this.initApiCore()
+      return
+    }
+
+    this.log('No configuration found, let\'s set one up.')
+    const apiKey = await input({ default: '', message: 'Your API Key (leave empty for anonymous access)' })
+    const baseUrl = await input({ default: defaultBaseUrl, message: 'The API base url' })
+
+    this.userConfig.apiKey = apiKey || undefined
+    this.userConfig.baseUrl = baseUrl
+    this.initApiCore()
+    await this.saveUserConfig()
   }
   
   public async saveUserConfig(): Promise<void> {

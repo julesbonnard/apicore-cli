@@ -24,10 +24,15 @@ export type BaseDoc = {
   news: string[]
 }
 
-export const BASE_DOC_FIELDS = [
-  'afpshortid', 'created', 'country', 'countryname', 'city', 'headline',
-  'lang', 'class', 'published', 'revision', 'slug', 'uno', 'news',
-] as const
+// `satisfies Record<keyof BaseDoc, true>` force une erreur de compilation si ce set et le type
+// BaseDoc ci-dessus divergent, dans les deux sens (champ ajouté/retiré d'un côté sans l'autre).
+const BASE_DOC_FIELD_SET = {
+  afpshortid: true, created: true, country: true, countryname: true, city: true,
+  headline: true, lang: true, 'class': true, published: true, revision: true,
+  slug: true, uno: true, news: true,
+} as const satisfies Record<keyof BaseDoc, true>
+
+export const BASE_DOC_FIELDS = Object.keys(BASE_DOC_FIELD_SET) as (keyof BaseDoc)[]
 
 /** Ajoute le socle requis par parseDocument() à une liste de champs à demander à l'API. */
 export function toApiFields(fields: readonly string[]): string[] {

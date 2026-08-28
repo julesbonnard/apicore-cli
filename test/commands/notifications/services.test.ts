@@ -1,48 +1,85 @@
-import { Config } from '@oclif/core'
 import { strict as assert } from 'node:assert'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const root = join(dirname(fileURLToPath(import.meta.url)), '../../..')
+import { runCliCommand } from '../../helpers/run-command.js'
 
 describe('notifications services', () => {
-  let config: Config
-
-  before(async () => {
-    config = await Config.load({ root })
+  describe('list', () => {
+    it('renders the services table', async () => {
+      const { error, stdout } = await runCliCommand('src/commands/notifications/services/index.js', [], {
+        apiCore: {
+          notificationCenter: {
+            async listServices() {
+              return [{ serviceName: 'my-service', serviceType: 'mail', createdDate: '2026-01-01', lastRegisteredDate: '2026-01-02', shared: false, serviceDatas: '{}' }]
+            },
+          },
+        },
+      })
+      assert.equal(error, undefined)
+      assert.ok(stdout.includes('my-service'), stdout)
+      assert.ok(stdout.includes('mail'), stdout)
+    })
   })
 
-  it('list should be loadable', () => {
-    const cmd = config.findCommand('notifications:services')
-    assert.ok(cmd)
+  describe('delete', () => {
+    it('deletes the named service and re-lists services', async () => {
+      const deleteCalls: unknown[] = []
+      const { error, runCommandCalls, stdout } = await runCliCommand(
+        'src/commands/notifications/services/delete.js',
+        ['my-service'],
+        {
+          apiCore: {
+            notificationCenter: {
+              async deleteService(name: string) { deleteCalls.push(name) },
+            },
+          },
+        }
+      )
+      assert.equal(error, undefined)
+      assert.deepEqual(deleteCalls, ['my-service'])
+      assert.ok(stdout.includes('Service my-service deleted'), stdout)
+      assert.deepEqual(runCommandCalls, [{ argv: undefined, id: 'notifications:services' }])
+    })
   })
 
-  it('delete should be loadable', () => {
-    const cmd = config.findCommand('notifications:services:delete')
-    assert.ok(cmd)
-  })
+  describe('create', () => {
+    it('errors when --datas is not valid JSON', async () => {
+      const { error } = await runCliCommand(
+        'src/commands/notifications/services/create.js',
+        ['my-service', '--type', 'mail', '--datas', 'not-json'],
+        { apiCore: {} }
+      )
+      assert.ok(error?.message.includes('--datas must be a valid JSON object'), error?.message)
+    })
 
-  it('delete should require serviceName arg', () => {
-    const cmd = config.findCommand('notifications:services:delete')
-    assert.ok(cmd)
-    const args = cmd.args as Record<string, { required?: boolean }>
-    assert.ok(args.serviceName)
-    assert.equal(args.serviceName.required, true)
-  })
+    it('errors when --datas does not match the schema for --type', async () => {
+      const { error } = await runCliCommand(
+        'src/commands/notifications/services/create.js',
+        ['my-service', '--type', 'mail', '--datas', '{}'],
+        { apiCore: {} }
+      )
+      assert.ok(error?.message.includes('Invalid --datas for service type mail'), error?.message)
+      assert.ok(error?.message.includes('address'), error?.message)
+    })
 
-  it('create should be loadable', () => {
-    const cmd = config.findCommand('notifications:services:create')
-    assert.ok(cmd)
-  })
-
-  it('create should require name arg and type/datas flags', () => {
-    const cmd = config.findCommand('notifications:services:create')
-    assert.ok(cmd)
-    const args = cmd.args as Record<string, { required?: boolean }>
-    assert.ok(args.name)
-    assert.equal(args.name.required, true)
-    const flagNames = Object.keys(cmd.flags)
-    assert.ok(flagNames.includes('type'))
-    assert.ok(flagNames.includes('datas'))
+    it('registers the service with the parsed datas and re-lists services', async () => {
+      const registerCalls: unknown[] = []
+      const { error, runCommandCalls, stdout } = await runCliCommand(
+        'src/commands/notifications/services/create.js',
+        ['my-service', '--type', 'mail', '--datas', '{"address":"user@example.com"}'],
+        {
+          apiCore: {
+            notificationCenter: {
+              async registerService(params: unknown) {
+                registerCalls.push(params)
+                return 'service-identifier-123'
+              },
+            },
+          },
+        }
+      )
+      assert.equal(error, undefined)
+      assert.deepEqual(registerCalls, [{ datas: { address: 'user@example.com' }, name: 'my-service', type: 'mail' }])
+      assert.ok(stdout.includes('Service my-service created (service-identifier-123)'), stdout)
+      assert.deepEqual(runCommandCalls, [{ argv: undefined, id: 'notifications:services' }])
+    })
   })
 })

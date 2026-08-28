@@ -1,49 +1,103 @@
-import { Config } from '@oclif/core'
 import { strict as assert } from 'node:assert'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const root = join(dirname(fileURLToPath(import.meta.url)), '../../..')
+import { runCliCommand } from '../../helpers/run-command.js'
 
 describe('notifications subscriptions', () => {
-  let config: Config
+  describe('list', () => {
+    it('lists all subscriptions when no service name is given', async () => {
+      const calls: string[] = []
+      const { error, stdout } = await runCliCommand('src/commands/notifications/subscriptions/index.js', [], {
+        apiCore: {
+          notificationCenter: {
+            async listSubscriptions() {
+              calls.push('listSubscriptions')
+              return [{ name: 'sub-1', identifier: 'id-1' }]
+            },
+            async subscriptionsInService() { calls.push('subscriptionsInService') },
+          },
+        },
+      })
+      assert.equal(error, undefined)
+      assert.deepEqual(calls, ['listSubscriptions'])
+      assert.ok(stdout.includes('sub-1'), stdout)
+    })
 
-  before(async () => {
-    config = await Config.load({ root })
+    it('lists only subscriptions of the given service', async () => {
+      const calls: unknown[] = []
+      const { error } = await runCliCommand('src/commands/notifications/subscriptions/index.js', ['my-service'], {
+        apiCore: {
+          notificationCenter: {
+            async listSubscriptions() { calls.push(['listSubscriptions']) },
+            async subscriptionsInService(name: string) { calls.push(['subscriptionsInService', name]); return [] },
+          },
+        },
+      })
+      assert.equal(error, undefined)
+      assert.deepEqual(calls, [['subscriptionsInService', 'my-service']])
+    })
   })
 
-  it('list should be loadable', () => {
-    const cmd = config.findCommand('notifications:subscriptions')
-    assert.ok(cmd)
+  describe('delete', () => {
+    it('deletes the subscription and re-lists subscriptions for the service', async () => {
+      const deleteCalls: unknown[] = []
+      const { error, runCommandCalls, stdout } = await runCliCommand(
+        'src/commands/notifications/subscriptions/delete.js',
+        ['my-service', 'sub-identifier'],
+        {
+          apiCore: {
+            notificationCenter: {
+              async deleteSubscription(serviceName: string, subscriptionIdentifier: string) {
+                deleteCalls.push([serviceName, subscriptionIdentifier])
+              },
+            },
+          },
+        }
+      )
+      assert.equal(error, undefined)
+      assert.deepEqual(deleteCalls, [['my-service', 'sub-identifier']])
+      assert.ok(stdout.includes('Subscription sub-identifier deleted'), stdout)
+      assert.deepEqual(runCommandCalls, [{ argv: ['my-service'], id: 'notifications:subscriptions' }])
+    })
   })
 
-  it('delete should be loadable', () => {
-    const cmd = config.findCommand('notifications:subscriptions:delete')
-    assert.ok(cmd)
-  })
+  describe('create', () => {
+    it('splits --langs and --products and re-lists subscriptions for the service', async () => {
+      const addCalls: unknown[] = []
+      const { error, runCommandCalls, stdout } = await runCliCommand(
+        'src/commands/notifications/subscriptions/create.js',
+        ['my-service', 'my-subscription', 'france', '--langs', 'fr,es', '--products', 'news,photo'],
+        {
+          apiCore: {
+            notificationCenter: {
+              async addSubscription(subscriptionName: string, serviceName: string, params: unknown) {
+                addCalls.push([subscriptionName, serviceName, params])
+                return 'sub-identifier-123'
+              },
+            },
+          },
+        }
+      )
+      assert.equal(error, undefined)
+      assert.deepEqual(addCalls, [[
+        'my-subscription',
+        'my-service',
+        { langs: ['fr', 'es'], product: ['news', 'photo'], query: 'france' },
+      ]])
+      assert.ok(stdout.includes('Subscription my-subscription created on service my-service (sub-identifier-123)'), stdout)
+      assert.deepEqual(runCommandCalls, [{ argv: ['my-service'], id: 'notifications:subscriptions' }])
+    })
 
-  it('delete should require serviceName and subscriptionIdentifier args', () => {
-    const cmd = config.findCommand('notifications:subscriptions:delete')
-    assert.ok(cmd)
-    const args = cmd.args as Record<string, { required?: boolean }>
-    assert.ok(args.serviceName)
-    assert.equal(args.serviceName.required, true)
-    assert.ok(args.subscriptionIdentifier)
-    assert.equal(args.subscriptionIdentifier.required, true)
-  })
-
-  it('create should be loadable', () => {
-    const cmd = config.findCommand('notifications:subscriptions:create')
-    assert.ok(cmd)
-  })
-
-  it('create should require serviceName and subscriptionName args', () => {
-    const cmd = config.findCommand('notifications:subscriptions:create')
-    assert.ok(cmd)
-    const args = cmd.args as Record<string, { required?: boolean }>
-    assert.ok(args.serviceName)
-    assert.equal(args.serviceName.required, true)
-    assert.ok(args.subscriptionName)
-    assert.equal(args.subscriptionName.required, true)
+    it('omits langs/products/query when the corresponding flags are absent', async () => {
+      const addCalls: unknown[] = []
+      await runCliCommand('src/commands/notifications/subscriptions/create.js', ['my-service', 'my-subscription'], {
+        apiCore: {
+          notificationCenter: {
+            async addSubscription(subscriptionName: string, serviceName: string, params: unknown) {
+              addCalls.push(params)
+            },
+          },
+        },
+      })
+      assert.deepEqual(addCalls, [{ langs: undefined, product: undefined, query: undefined }])
+    })
   })
 })

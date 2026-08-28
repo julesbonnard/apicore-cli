@@ -1,20 +1,22 @@
-import { Config } from '@oclif/core'
 import { strict as assert } from 'node:assert'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
+import { runCliCommand } from '../helpers/run-command.js'
 
 describe('logout', () => {
-  let config: Config
-
-  before(async () => {
-    config = await Config.load({ root })
+  it('removes config.json and confirms when logged in', async () => {
+    // rm() is real (not mocked): "Logged out successfully." only logs if the isolated
+    // config.json was actually deleted — the ENOENT branch below logs a different message.
+    const { error, stdout } = await runCliCommand('src/commands/logout/index.js', [], {
+      userConfig: { apiKey: 'some-key' },
+    })
+    assert.equal(error, undefined)
+    assert.ok(stdout.includes('Logged out successfully.'), stdout)
   })
 
-  it('should be loadable', () => {
-    const cmd = config.findCommand('logout')
-    assert.ok(cmd)
-    assert.equal(cmd.id, 'logout')
+  it('reports "Not logged in." when there is nothing to remove (ENOENT)', async () => {
+    const { error, stdout } = await runCliCommand('src/commands/logout/index.js', [], {
+      seedConfigFile: false,
+    })
+    assert.equal(error, undefined)
+    assert.ok(stdout.includes('Not logged in.'), stdout)
   })
 })

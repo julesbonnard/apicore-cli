@@ -38,6 +38,7 @@
   "license": "MIT",
   "main": "",
   "name": "@julesbonnard/apicore-cli",
+  "packageManager": "pnpm@11.22.0",
   "oclif": {
     "bin": "apicore",
     "dirname": "apicore",

@@ -15,8 +15,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
       afpnews-api:
-        specifier: next
-        version: 3.0.0-next.2
+        specifier: ^3.0.0
+        version: 3.0.0
       chalk:
         specifier: ^6.0.0
         version: 6.0.0
@@ -962,8 +962,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  afpnews-api@3.0.0-next.2:
-    resolution: {integrity: sha512-tNfC5ZtPzbIAzK0M68l8e0sCpMTV26+xI+JdHUpfQitPgsEJlCd5p1rA4Nj0M3GfBE0aZHSg8jtzGWk2HyDfWA==}
+  afpnews-api@3.0.0:
+    resolution: {integrity: sha512-AReRCABc+obcofflxH09beEcX8UjFjOWSsUMh5nIs23LtRfF1xRfV1C6AGVxvFQePwB7Zht/WYOaWAHHhi/G+g==}
     engines: {node: '>= 12.20.0'}
 
   ansi-escapes@4.3.2:
@@ -2798,7 +2798,7 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  afpnews-api@3.0.0-next.2:
+  afpnews-api@3.0.0:
     dependencies:
       '@types/events': 3.0.3
       '@types/moo': 0.5.10

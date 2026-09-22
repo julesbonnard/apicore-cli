@@ -6,7 +6,7 @@
   "dependencies": {
     "@inquirer/prompts": "^8.7.2",
     "@oclif/core": "^5.0.0",
-    "afpnews-api": "next",
+    "afpnews-api": "^3.0.0",
     "chalk": "^6.0.0",
     "natural-orderby": "^5.0.0",
     "ora": "^9.4.1",
@@ -63,7 +63,7 @@
     "test:coverage": "c8 mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
-  "version": "0.6.0-next.0",
+  "version": "1.0.0",
   "bugs": "https://github.com/julesbonnard/apicore-cli/issues",
   "keywords": [
     "oclif"

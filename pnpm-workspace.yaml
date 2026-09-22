@@ -1,7 +1,7 @@
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - afpnews-api@3.0.0-next.0
+  - afpnews-api@3.0.0-next.0 || 3.0.0
   - '@oxlint/binding-android-arm-eabi@1.85.0'
   - '@oxlint/binding-android-arm64@1.85.0'
   - '@oxlint/binding-darwin-arm64@1.85.0'
